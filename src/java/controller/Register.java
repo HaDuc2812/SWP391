@@ -20,6 +20,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet(name="Register", urlPatterns={"/register"})
 public class Register extends HttpServlet {
    
+    
+    
+    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
