@@ -5,6 +5,7 @@
 
 package controller;
 
+import dal.DAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -34,16 +35,27 @@ public class Register extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Register</title>");  
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Register at " + request.getContextPath () + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            String fullname = request.getParameter("fullName");
+            String email =  request.getParameter("email");
+            
+            DAO dao = new DAO();
+            
+            //assign role
+            String role = dao.countUsers() == 0 ? "Administator" : "Customer";
+            //attem to register the user
+            boolean success = dao.register(username, password, role, fullname, email);
+            
+            if(success){
+                //on success redirect to login page or homepage
+                request.setAttribute("success", "Regisstration successful. please login");
+                request.getRequestDispatcher("Login.jsp").forward(request, response);
+            }else{
+                //on fail, return to register
+                request.setAttribute("error", "Registration failed. try again");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+            }
         }
     } 
 

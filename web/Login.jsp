@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@page import="controller.LoginServlet" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -94,22 +95,26 @@
         </style>
     </head>
     <body>
+        <div class="login-container">
+            <h2>Login to Your Account</h2>
 
-        <jsp:include page="NavBar.jsp"></jsp:include>
+            <% String error = (String) request.getAttribute("mess"); %>
+            <% if (error != null) { %>
+            <div class="error"><%= error %></div>
+            <% } %>
 
-            <div class="login-container">
-                <h2>Login to Your Account</h2>
-                <form action="LoginServlet" method="post">
-                    <input type="text" name="username" placeholder="Username" required><br>
-                    <input type="password" name="password" placeholder="Password" required><br>
-                    <input type="submit" value="Login">
+            <form action="LoginServlet" method="post">
+                <input type="text" name="username" placeholder="Username" required><br>
+                <input type="password" name="password" placeholder="Password" required><br>
+                <input type="submit" value="Login">
+            </form>
 
-                </form>
-                <div style="margin-top: 15px;">
-                    <a href="META-INF/../register.jsp" class="btn-link">Register</a> | 
-                    <a href="forgotPassword.jsp" class="btn-link">Forgot Password?</a>
-                </div>
+            <div class="extra-links">
+                <a href="register.jsp" class="btn-link">Register</a> |
+                <a href="forgotPassword.jsp" class="btn-link">Forgot Password?</a>
             </div>
+        </div>
+
         <jsp:include page="Footer.jsp"></jsp:include>
 
 

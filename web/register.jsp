@@ -53,7 +53,7 @@
             <p class="error"><%= error %></p>
             <% } %>
 
-            <form action="RegisterServlet" method="post">
+            <form action="register" method="post">
                 <input type="text" name="username" placeholder="Username" required />
                 <input type="password" name="password" placeholder="Password" required />
                 <input type="text" name="fullName" placeholder="Full Name" />
