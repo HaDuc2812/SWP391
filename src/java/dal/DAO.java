@@ -149,6 +149,31 @@ public class DAO {
             e.printStackTrace();
         }
     }
+    public void updateUser(int user_id, String field, String value){
+        String sql = "update User\n" 
+                +"set "+ field + " = ?\n"
+                +"where user_id = ?";
+        try{
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, value);
+            ps.setInt(2, user_id);
+            ps.executeUpdate();
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            try{
+                if(ps!=null){
+                    ps.close();
+                }
+                if(conn!= null){
+                    conn.close();
+                }
+            }catch(SQLException e){
+                e.printStackTrace();
+            }
+        }
+    }
 
 }
 

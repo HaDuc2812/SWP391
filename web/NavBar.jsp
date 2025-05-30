@@ -12,7 +12,7 @@
         <div class="nav-links">
             <a href="Homepage.jsp">Home</a>
             <a href="META-INF/../MainPage.jsp">Explore</a>
-            <a href="META-INF/../Login.jsp">Account</a>
+            <a href="META-INF/../userprofile.jsp">Account</a>
         </div>
     </div>
 </html>

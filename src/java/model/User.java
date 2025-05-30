@@ -11,6 +11,7 @@ import java.sql.Date;
  * @author HA DUC
  */
 public class User {
+
     private int user_id;
     private String username;
     private String password_hash;
@@ -18,6 +19,8 @@ public class User {
     private String full_name;
     private String email;
     private Date created_at;
+    private String phone;
+    private String address;
 
     public User() {
     }
@@ -30,6 +33,8 @@ public class User {
         this.full_name = full_name;
         this.email = email;
         this.created_at = created_at;
+        this.phone = phone;
+        this.address = address;
     }
 
     public int getUser_id() {
@@ -88,10 +93,25 @@ public class User {
         this.created_at = created_at;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public String toString() {
-        return "User{" + "user_id=" + user_id + ", username=" + username + ", password_hash=" + password_hash + ", role=" + role + ", full_name=" + full_name + ", email=" + email + ", created_at=" + created_at + '}';
+        return "User{" + "user_id=" + user_id + ", username=" + username + ", password_hash=" + password_hash + ", role=" + role + ", full_name=" + full_name + ", email=" + email + ", created_at=" + created_at + ", phone=" + phone + ", address=" + address + '}';
     }
-    
-}
 
+}
