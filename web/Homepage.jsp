@@ -1,21 +1,27 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <%@page import="model.User" %>
-<% 
+<%
+    // Lấy thông tin user (nếu đã đăng nhập)
     User currentUser = (User) session.getAttribute("user");
+    String fullName = currentUser != null ? currentUser.getFull_name() : "Khách";
 %>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>Home Page</title>
         <style>
-            html, body {
+            /* Reset cơ bản */
+            * {
                 margin: 0;
                 padding: 0;
-                font-family: Arial, sans-serif;
-                height: 100%;
+                box-sizing: border-box;
             }
-
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f6f8;
+            }
+            /* Navbar */
             .navbar {
                 display: flex;
                 justify-content: space-between;
@@ -23,112 +29,131 @@
                 background-color: #2c3e50;
                 padding: 10px 20px;
             }
-
             .navbar .logo {
-                color: #fff;
+                color: #ecf0f1;
                 font-size: 24px;
                 font-weight: bold;
                 text-decoration: none;
             }
-
-            .nav-links a {
+            .navbar .nav-links a {
                 text-decoration: none;
+                color: #bdc3c7;
+                margin-left: 20px;
+                font-size: 16px;
+            }
+            .navbar .nav-links a:hover {
                 color: #ecf0f1;
-                margin-left: 15px;
-                padding: 8px 16px;
-                background-color: #34495e;
-                border-radius: 4px;
-                transition: background-color 0.3s;
             }
-
-            .nav-links a:hover {
-                background-color: #1abc9c;
+            /* Container chính */
+            .container {
+                max-width: 1200px;
+                margin: 30px auto;
+                padding: 0 20px;
             }
-
-            .content {
-                height: calc(100vh - 160px); /* Adjust based on navbar and footer */
-                position: relative;
-                overflow: hidden;
+            /* Phần chào mừng */
+            .welcome {
+                margin-bottom: 30px;
             }
-
-            .slider-container {
-                width: 100%;
-                height: 100%;
-                position: relative;
+            .welcome h2 {
+                font-size: 28px;
+                color: #2c3e50;
             }
-
-            .slides {
-                display: flex;
-                width: 400%; /* 4 images */
-                height: 100%;
-                animation: slide 16s infinite;
+            /* Thống kê */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 20px;
             }
-
-            .slides img {
-                width: 100vw;
-                height: 100%;
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-
-            @keyframes slide {
-                0% {
-                    transform: translateX(0);
-                }
-                20% {
-                    transform: translateX(0);
-                }
-                25% {
-                    transform: translateX(-100vw);
-                }
-                45% {
-                    transform: translateX(-100vw);
-                }
-                50% {
-                    transform: translateX(-200vw);
-                }
-                70% {
-                    transform: translateX(-200vw);
-                }
-                75% {
-                    transform: translateX(-300vw);
-                }
-                95% {
-                    transform: translateX(-300vw);
-                }
-                100% {
-                    transform: translateX(0);
-                }
-            }
-
-            .footer {
-                background-color: #2c3e50;
-                color: #ecf0f1;
+            .stat-card {
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                padding: 20px;
                 text-align: center;
-                padding: 20px 10px;
             }
-
-            .footer p {
-                margin: 5px 0;
+            .stat-card h3 {
+                font-size: 22px;
+                color: #34495e;
+                margin-bottom: 10px;
+            }
+            .stat-card p {
+                font-size: 36px;
+                color: #e74c3c;
+                font-weight: bold;
+            }
+            /* Footer */
+            .footer {
+                text-align: center;
+                margin-top: 40px;
+                color: #7f8c8d;
+                font-size: 14px;
+                padding: 20px 0;
             }
         </style>
     </head>
     <body>
 
-        <jsp:include page="NavBar.jsp"></jsp:include>
+        <!-- Navbar -->
+        <div class="navbar">
+            <a href="home" class="logo">IMS Dashboard</a>
+            <div class="nav-links">
+                <a href="goods">Hàng Hóa</a>
+                <a href="suppliers">Nhà Cung Cấp</a>
+                <a href="orders">Đơn Hàng</a>
+                <a href="requests">Yêu Cầu KH</a>
+                <% if (currentUser != null) { %>
+                <a href="ProfileControl">Xin chào, <%= fullName %></a>
+                <a href="LogoutControl">Đăng Xuất</a>
+                <% } else { %>
+                <a href="Login.jsp">Đăng Nhập</a>
+                <a href="Register.jsp">Đăng Ký</a>
+                <% } %>
+            </div>
+        </div>
 
-            <div class="content">
-                <div class="slider-container">
-                    <div class="slides">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6QWUpmPiDy4YTDFApC9NBJhH45oHNlQqNMw&s" alt="Product 1">
-                        <img src="https://noithatkenli.vn/wp-content/uploads/2025/04/fantasia-cover.jpg" alt="Product 2">
-                        <img src="https://shopnoithatgiare.com/data/product/z6105874360632_d9b66ff9addf0763b27b49d8c6c9c0d1.jpg" alt="Product 3">
-                        <img src="https://shopnoithatgiare.com/data/product/sofa-chan-thuyen-go-soi-nga-0324%20(2).jpg" alt="Product 4">
-                    </div>
+        <div class="container">
+            <!-- Phần chào mừng người dùng -->
+            <div class="welcome">
+                <h2>Chào mừng, <%= fullName %>!</h2>
+                <p>Đây là trang tổng quan (Dashboard) của hệ thống Quản lý Kho Hàng.</p>
+            </div>
+
+            <!-- Thống kê sơ bộ -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Tổng số hàng hóa</h3>
+                    <p><%= request.getAttribute("totalGoods") %></p>
+                </div>
+                <div class="stat-card">
+                    <h3>Tổng số nhà cung cấp</h3>
+                    <p><%= request.getAttribute("totalSuppliers") %></p>
+                </div>
+                <div class="stat-card">
+                    <h3>Tổng số đơn hàng</h3>
+                    <p><%= request.getAttribute("totalOrders") %></p>
+                </div>
+                <div class="stat-card">
+                    <h3>Yêu cầu KH</h3>
+                    <p><%= request.getAttribute("totalRequests") %></p>
                 </div>
             </div>
 
-        <jsp:include page="Footer.jsp"></jsp:include>
+            <!-- Mục điều hướng nhanh (nếu cần) -->
+            <div style="margin-top: 40px;">
+                <h3>Thao tác nhanh:</h3>
+                <ul>
+                    <li><a href="goods">Quản lý Hàng Hóa</a></li>
+                    <li><a href="suppliers">Quản lý Nhà Cung Cấp</a></li>
+                    <li><a href="orders">Quản lý Đơn Hàng</a></li>
+                    <li><a href="requests">Danh sách Yêu Cầu KH</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            &copy; 2025 IMS. Tất cả quyền được bảo lưu.
+        </div>
 
     </body>
 </html>

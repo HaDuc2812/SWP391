@@ -175,5 +175,100 @@ public class DAO {
         }
     }
 
+    public int countGoods() {
+        String query = "SELECT COUNT(*) AS total FROM Goods";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error in countGoods(): " + e.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    /**
+     * Đếm tổng số nhà cung cấp (Suppliers)
+     */
+    public int countSuppliers() {
+        String query = "SELECT COUNT(*) AS total FROM Suppliers";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error in countSuppliers(): " + e.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    /**
+     * Đếm tổng số đơn hàng (Orders)
+     */
+    public int countOrders() {
+        String query = "SELECT COUNT(*) AS total FROM Orders";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error in countOrders(): " + e.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    /**
+     * Đếm tổng số yêu cầu khách hàng (CustomerRequests)
+     */
+    public int countCustomerRequests() {
+        String query = "SELECT COUNT(*) AS total FROM CustomerRequests";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error in countCustomerRequests(): " + e.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    /**
+     * Đóng kết nối và các resource
+     */
+    private void closeResources() {
+        try {
+            if (rs != null) {
+                rs.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error closing resources: " + e.getMessage());
+        }
+    }
 }
 
