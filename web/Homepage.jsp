@@ -102,11 +102,11 @@
                 <a href="orders">Đơn Hàng</a>
                 <a href="requests">Yêu Cầu KH</a>
                 <% if (currentUser != null) { %>
-                <a href="ProfileControl">Xin chào, <%= fullName %></a>
-                <a href="LogoutControl">Đăng Xuất</a>
+                <a href="userprofile.jsp">Xin chào, <%= fullName %></a>
+                <a href="logout">Đăng Xuất</a>
                 <% } else { %>
                 <a href="Login.jsp">Đăng Nhập</a>
-                <a href="Register.jsp">Đăng Ký</a>
+                <a href="register.jsp">Đăng Ký</a>
                 <% } %>
             </div>
         </div>

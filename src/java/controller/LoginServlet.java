@@ -31,6 +31,7 @@ public class LoginServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        String fullName = request.getParameter("username");
         User u = dao.login(username, password);
 
         if (u == null) {
@@ -45,7 +46,6 @@ public class LoginServlet extends HttpServlet {
             // Check role and redirect
             String role = u.getRole();
             System.out.println("Logged in with role: " + role);
-
             if ("Administrator".equals(role)) {
                 response.sendRedirect(request.getContextPath() + "/adminDashboard.jsp");
             } else if ("InventoryManager".equals(role)) {

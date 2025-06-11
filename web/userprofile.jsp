@@ -15,55 +15,129 @@
         <meta charset="UTF-8"/>
         <title>User Profile</title>
         <!-- Bootstrap CSS (optional, for styling) -->
-        <link
-            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-MrY6Zx2eZ6iYlIeTQEG90R1lDpl+zutInb1E5niL+78z0uZqeDBwMUlqkQPR1y1C"
-            crossorigin="anonymous"
-            />
+
         <style>
-            .profile-card {
-                max-width: 600px;
-                margin: 40px auto;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-                background-color: #ffffff;
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f6f8;
+                margin: 0;
+                padding: 0;
             }
-            .profile-header {
-                text-align: center;
+
+            /* Navbar (if needed) */
+            .navbar {
+                background-color: #2c3e50;
+                padding: 10px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .navbar a {
+                color: #ecf0f1;
+                text-decoration: none;
+                margin-left: 20px;
+                font-size: 16px;
+            }
+
+            .navbar a:hover {
+                color: #ffffff;
+            }
+
+            /* Main container */
+            .profile-container {
+                max-width: 600px;
+                margin: 50px auto;
+                background-color: #ffffff;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .profile-title {
+                font-size: 32px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 30px;
+                border-left: 8px solid #2980b9;
+                padding-left: 10px;
+            }
+
+            .form-group {
                 margin-bottom: 20px;
             }
-            .profile-header h2 {
-                margin: 0;
+
+            .form-group label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #34495e;
             }
-            .profile-row {
-                margin-bottom: 15px;
+
+            .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 14px;
             }
-            .profile-label {
-                font-weight: 600;
-                width: 150px;
+
+            .form-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .form-actions input,
+            .form-actions button {
+                background-color: #2980b9;
+                color: #fff;
+                border: none;
+                padding: 10px 20px;
+                font-size: 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            .form-actions button.logout {
+                background-color: #e74c3c;
+            }
+
+            .form-actions input:hover,
+            .form-actions button:hover {
+                background-color: #1f6391;
+            }
+
+            .form-actions button.logout:hover {
+                background-color: #c0392b;
+            }
+
+            .footer {
+                text-align: center;
+                margin-top: 40px;
+                color: #7f8c8d;
+                font-size: 14px;
+                padding: 20px 0;
+            }
+
+            .footer p {
+                margin: 5px 0;
             }
         </style>
+
     </head>
     <body class="container-fluid">
         <header class="row">
             <div class="col-md-2 logo">
                 <a href="homepage"><img src="elements/logo/home_logo.png" alt="Home Logo"></a>
             </div>
-            <div class="col-md-4"></div>
-            <nav class="col-md-6 navigate">
-                <a href="homepage">home</a>
-                <a href="search.jsp">search</a>
-                <a href="home">explore</a>
-                <a href="login.jsp">account</a>
-                <a href="cart.jsp">cart</a>
-            </nav>
-        </header>
+            <jsp:include page="NavBar.jsp"></jsp:include>
+            </header>
 
-        <main class="row justify-content-center">
+            <main class="row justify-content-center">
 
-            <c:if test="${sessionScope.user == null}">
+                <c:if test="${sessionScope.user == null}">
                 <c:redirect url="login.jsp" />
             </c:if>
 
@@ -82,7 +156,7 @@
 
                     <div  class="mb-3 d-flex align-items-center">
                         <p class="title" style="width: 20%">Name: </p>
-                        <input  type="text" id="name" name="value" class="form-control me-2"  value="${sessionScope.user.full_name}" readonly="readonly">
+                        <input  type="text" id="name" name="value" class="form-control me-2"  value="${sessionScope.user.username}" readonly="readonly">
 
                     </div>
 
@@ -118,16 +192,7 @@
                     <div class="col-md-3"></div>
                 </div>
             </c:if>
+            <jsp:include page="Footer.jsp"></jsp:include>
         </main>
-
-        <footer class="footer row">
-            <div class="col-md-4 title_contact">
-                <h3>CONTACT US</h3>
-            </div>
-            <div class="col-md-4 contact_info">
-                <p>Address: 123 Main Street, Ha Noi</p>
-                <p>Phone: 0123456789</p>
-            </div>
-        </footer>
     </body>
 </html>

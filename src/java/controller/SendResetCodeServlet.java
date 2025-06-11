@@ -5,25 +5,26 @@
 
 package controller;
 
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
+import java.util.Properties;
+
 import dal.DAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import util.EmailUtil;
 
 /**
  *
  * @author HA DUC
  */
-@WebServlet(name="Register", urlPatterns={"/register"})
-public class Register extends HttpServlet {
+public class SendResetCodeServlet extends HttpServlet {
    
-    
-    
-    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -35,27 +36,16 @@ public class Register extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            String username = request.getParameter("username");
-            String password = request.getParameter("password");
-            String fullname = request.getParameter("fullName");
-            String email =  request.getParameter("email");
-            
-            DAO dao = new DAO();
-            
-            //assign role
-            String role = dao.countUsers() == 0 ? "Administator" : "Customer";
-            //attem to register the user
-            boolean success = dao.register(username, password, role, fullname, email);
-            
-            if(success){
-                //on success redirect to login page or homepage
-                request.setAttribute("success", "Regisstration successful. please login");
-                request.getRequestDispatcher("Login.jsp").forward(request, response);
-            }else{
-                //on fail, return to register
-                request.setAttribute("error", "Registration failed. try again");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
-            }
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet SendResetCodeServlet</title>");  
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet SendResetCodeServlet at " + request.getContextPath () + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
         }
     } 
 
@@ -83,7 +73,25 @@ public class Register extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        processRequest(request, response);
+        String email = request.getParameter("email");
+        DAO d = new DAO();
+        if(d.isEmailRegistered(email)){
+            request.setAttribute("error", "email not found");
+            request.getRequestDispatcher("forgorPassword.jsp").forward(request, response);
+            return;
+        }
+        String code = String.valueOf((int) (Math.random()*900000)+100000);
+        HttpSession session = request.getSession();
+        session.setAttribute("resetCode", code);
+        session.setAttribute("resetEmail", email);
+        
+        try{
+            EmailUtil.sendEmail(email, "Reset code", "Your password reset code is "+ code);
+            response.sendRedirect("verifyCode.jsp");
+        }catch(Exception e){
+            request.setAttribute("error", "failed to send email");
+            request.getRequestDispatcher("forgotPassword.jss").forward(request, response);
+        }
     }
 
     /** 

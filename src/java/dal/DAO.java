@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 import model.User;
 
 /**
@@ -104,72 +105,81 @@ public class DAO {
 //        }
 //        return null;
 //    }
-    public boolean register(String username, String password, String role, String fullName, String email){
+
+    public boolean register(String username, String password, String role, String fullName, String email) {
         String sql = "insert into Users(username, password_hash, role, full_name, email) VALUES (?, ?, ?, ?, ?)";
-        try{
+        try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, username);
             ps.setString(2, password);
             ps.setString(3, role);
             ps.setString(4, fullName);
-            ps.setString(5,email);
+            ps.setString(5, email);
             return ps.executeUpdate() > 0;
-            
-           
-        }catch(SQLException e){
+
+        } catch (SQLException e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             close();
         }
         return false;
     }
-    public int countUsers(){
+
+    public int countUsers() {
         String sql = "select count(*) from Users";
-        try{
+        try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
-            if(rs.next()){
+            if (rs.next()) {
                 return rs.getInt(1);
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             close();
         }
         return 0;
     }
-    private void close(){
-        try{
-            if(rs!= null) ps.close();
-            if(ps!= null) ps.close();
-            if(conn != null) conn.close();
-        }catch(SQLException e){
+
+    private void close() {
+        try {
+            if (rs != null) {
+                ps.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    public void updateUser(int user_id, String field, String value){
-        String sql = "update User\n" 
-                +"set "+ field + " = ?\n"
-                +"where user_id = ?";
-        try{
+
+    public void updateUser(int user_id, String field, String value) {
+        String sql = "update Users\n"
+                + "set " + field + " = ?\n"
+                + "where user_id = ?";
+        try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, value);
             ps.setInt(2, user_id);
             ps.executeUpdate();
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally{
-            try{
-                if(ps!=null){
+        } finally {
+            try {
+                if (ps != null) {
                     ps.close();
                 }
-                if(conn!= null){
+                if (conn != null) {
                     conn.close();
                 }
-            }catch(SQLException e){
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
@@ -270,5 +280,45 @@ public class DAO {
             System.out.println("Error closing resources: " + e.getMessage());
         }
     }
-}
 
+    //check xem email da ton tai trong he thong chua
+    public boolean isEmailRegistered(String email) {
+        String sql = "Select 1 from Users where eamil =?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, email);
+
+            rs = ps.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    //generate verification code
+    public String generatVerificationCode() {
+        Random rand = new Random();
+        int code = 100000 +rand.nextInt(900000);
+        return String.valueOf(code);
+    }
+    //update password by email
+    public boolean updatePasswordByEmail(String email, String newPassword){
+        String sql = "update Users set password =? where email = ?";
+        try{
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            
+            ps.setString(1, newPassword);
+            ps.setString(2, email);
+            
+            int rowsUpdated = ps.executeUpdate();
+            return rowsUpdated > 0;
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

@@ -11,8 +11,8 @@
         <a href="Homepage.jsp" class="logo">Furniture shop</a>
         <div class="nav-links">
             <a href="Homepage.jsp">Home</a>
-            <a href="META-INF/../MainPage.jsp">Explore</a>
-            <a href="META-INF/../userprofile.jsp">Account</a>
+            <a href="MainPage.jsp">Explore</a>
+            <a href="userprofile.jsp">Account</a>
         </div>
     </div>
 </html>

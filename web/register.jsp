@@ -56,7 +56,7 @@
             <form action="register" method="post">
                 <input type="text" name="username" placeholder="Username" required />
                 <input type="password" name="password" placeholder="Password" required />
-                <input type="text" name="fullName" placeholder="Full Name" />
+                <input type="password" name="confirmPassword" placeholder="Confirm Password" />
                 <input type="email" name="email" placeholder="Email" required />
                 <input type="submit" value="Register" />
             </form>
