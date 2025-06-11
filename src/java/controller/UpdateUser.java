@@ -128,7 +128,7 @@ public class UpdateUser extends HttpServlet {
         }
 
         session.setAttribute("user", user);  // Update session user info
-        request.getRequestDispatcher("userProfile.jsp").forward(request, response);
+        request.getRequestDispatcher("userprofile.jsp").forward(request, response);
     }
 
     /**

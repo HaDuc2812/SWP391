@@ -283,7 +283,7 @@ public class DAO {
 
     //check xem email da ton tai trong he thong chua
     public boolean isEmailRegistered(String email) {
-        String sql = "Select 1 from Users where eamil =?";
+        String sql = "Select * from Users where email =?";
         try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
@@ -301,24 +301,30 @@ public class DAO {
     //generate verification code
     public String generatVerificationCode() {
         Random rand = new Random();
-        int code = 100000 +rand.nextInt(900000);
+        int code = 100000 + rand.nextInt(900000);
         return String.valueOf(code);
     }
+
     //update password by email
-    public boolean updatePasswordByEmail(String email, String newPassword){
-        String sql = "update Users set password =? where email = ?";
-        try{
-            conn = DBContext.getConnection();
-            ps = conn.prepareStatement(sql);
-            
+    public boolean updatePasswordByEmail(String email, String newPassword) {
+        String sql = "UPDATE Users SET password_hash = ? WHERE email = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            System.out.println("Updating email: " + email);
+            System.out.println("New password: " + newPassword);
+
             ps.setString(1, newPassword);
             ps.setString(2, email);
-            
-            int rowsUpdated = ps.executeUpdate();
-            return rowsUpdated > 0;
-        }catch(SQLException e){
+
+            int rows = ps.executeUpdate();
+            System.out.println("Rows updated: " + rows);
+            return rows > 0;
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
+
 }

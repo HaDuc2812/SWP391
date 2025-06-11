@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpSession;
  *
  * @author HA DUC
  */
-public class VerifyServlet extends HttpServlet {
+public class UpdatePasswordServlet extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -35,10 +35,10 @@ public class VerifyServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet VerifyServlet</title>");  
+            out.println("<title>Servlet UpdatePasswordServlet</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet VerifyServlet at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet UpdatePasswordServlet at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -65,33 +65,35 @@ public class VerifyServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        HttpSession session = request.getSession();
-        String code = request.getParameter("code");
-        String realCode = (String) session.getAttribute("verificationCode");
-        String verificationFor = (String) session.getAttribute("verificationFor");
-        if (realCode != null && realCode.equals(code)) {
-            DAO dao = new DAO();
-            if("register".equals(verificationFor)){
-            String username = (String) session.getAttribute("username");
-            String password = (String) session.getAttribute("password");
-            String email = (String) session.getAttribute("email");
-
-            
-            String role = dao.countUsers() == 0 ? "Administrator" : "Customer";
-            dao.register(username, password, role, username, email);  // Save to DB
-
-            session.invalidate(); // clear session after successful verification
-            response.sendRedirect("Login.jsp");
-        } else if("reset".equals(verificationFor)) {
-            response.sendRedirect("resetPassword.jsp");
-        }
-                   }else{
-            request.setAttribute("error", "verification code incorrect");
-            request.getRequestDispatcher("VerifyCode.jsp").forward(request, response);
-        }
+    throws ServletException, IOException {
+       HttpSession session = request.getSession();
+       String email = (String) session.getAttribute("email");
+       
+       String newPassword = request.getParameter("newPassword");
+       String confirmPassword = request.getParameter("confirmPassword");
+       
+       if(email == null){
+           response.sendRedirect("Login.jsp");
+           return;
+       }
+       if(!newPassword.equals(confirmPassword)){
+           request.setAttribute("error", "Passwords not match.");
+           request.getRequestDispatcher("resetPassword.jsp").forward(request, response);
+           return;
+       }
+       DAO d = new DAO();
+       boolean updated = d.updatePasswordByEmail(email, newPassword);
+       
+       if(updated){
+           session.invalidate();
+           request.setAttribute("success", "Password updated successfully. You can login now");
+           request.getRequestDispatcher("Login.jsp").forward(request, response);
+       }else{
+           request.setAttribute("error", "Something went wrong. please try again");
+           request.getRequestDispatcher("resetPassword.jsp").forward(request, response);
+       }
     }
 
     /** 
