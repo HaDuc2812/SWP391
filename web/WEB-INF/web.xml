@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+    <servlet>
+        <servlet-name>UpdateUser</servlet-name>
+        <servlet-class>controller.UpdateUser</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>VerifyServlet</servlet-name>
         <url-pattern>/verify</url-pattern>
@@ -18,10 +22,6 @@
     <servlet>
         <servlet-name>VerifyServlet</servlet-name>
         <servlet-class>controller.VerifyServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>UpdateUser</servlet-name>
-        <servlet-class>controller.UpdateUser</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>RegisterSevlet</servlet-name>
