@@ -51,8 +51,8 @@ public class RegisterSevlet extends HttpServlet {
         String errorMsg = null;
 
         // Validation
-        if (password == null || !PASSWORD_PATTERN.matcher(password).matches()) {
-            errorMsg = "Password phải bao gồm chữ cái in hoa, in thường, số, ký tự đặc biệt, không trùng lặp kề nhau.";
+        if (password == null || !PASSWORD_PATTERN.matcher(password).matches()|| password.length()>8) {
+            errorMsg = "Password phải dài hơn 8 kí tự, bao gồm chữ cái in hoa, in thường, số, ký tự đặc biệt, không trùng lặp kề nhau.";
         } else if (!password.equals(confirmPassword)) {
             errorMsg = "Confirm Password không khớp.";
         } else if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {

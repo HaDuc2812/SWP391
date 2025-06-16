@@ -8,7 +8,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import model.Goods;
 import model.User;
 
 /**
@@ -65,46 +68,6 @@ public class DAO {
         }
         return null;
     }
-//     public User checkAccountExists(String email) {
-//        String query = "select * from Users\n"
-//                + "where email = ?";
-//        try {
-//            System.out.println("Checking if account exists for user: " + email);
-//            conn = DBContext.getConnection();
-//            ps = conn.prepareStatement(query);
-//            ps.setString(1, email);
-//            rs = ps.executeQuery();
-//            while (rs.next()) {
-//                System.out.println("Account found for user: " + email);
-//                return new User( rs.getInt("user_id"),
-//                        rs.getString("username"),
-//                        rs.getString("password_hash"),
-//                        rs.getString("role"),
-//                        rs.getString("full_name"),
-//                        rs.getString("email"),
-//                        rs.getDate("created_at"));
-//            }
-//            System.out.println("No account found for user: " + email);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                if (rs != null) {
-//                    rs.close();
-//                }
-//                if (ps != null) {
-//                    ps.close();
-//                }
-//                if (conn != null) {
-//                    conn.close();
-//                }
-//            } catch (SQLException ex) {
-//                // Handle closing errors
-//                ex.printStackTrace();
-//            }
-//        }
-//        return null;
-//    }
 
     public boolean register(String username, String password, String role, String fullName, String email) {
         String sql = "insert into Users(username, password_hash, role, full_name, email) VALUES (?, ?, ?, ?, ?)";
@@ -305,26 +268,52 @@ public class DAO {
         return String.valueOf(code);
     }
 
-    //update password by email
     public boolean updatePasswordByEmail(String email, String newPassword) {
         String sql = "UPDATE Users SET password_hash = ? WHERE email = ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            // Optional: Hash the password before storing
+            String hashedPassword = newPassword; // default plain
 
-            System.out.println("Updating email: " + email);
-            System.out.println("New password: " + newPassword);
-
-            ps.setString(1, newPassword);
+            ps.setString(1, hashedPassword);
             ps.setString(2, email);
 
             int rows = ps.executeUpdate();
-            System.out.println("Rows updated: " + rows);
+            System.out.println("Updating password for: " + email + " | Rows affected: " + rows);
             return rows > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<Goods> searchProductByName(String keyword) {
+        List<Goods> list = new ArrayList<>();
+        String sql = "select * from Goods where name like ?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+
+            ps.setString(1, "%" + keyword + "%");
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Goods g = new Goods(rs.getInt("good_id"),
+                        rs.getString("good_name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getInt("supplier_id"),
+                        rs.getDate("added_on"));
+                list.add(g);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
 }

@@ -5,41 +5,74 @@
     <meta charset="UTF-8">
     <title>Reset Password</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
 
-        .form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
-        }
+    .form-container {
+        background-color: #ffffff;
+        padding: 40px 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
 
-        input[type="password"], button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
+    .form-container h2 {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 25px;
+    }
 
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
+    .form-container input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
 
-        .success {
-            color: green;
-            margin-top: 10px;
-        }
-    </style>
+    .form-container button {
+        width: 100%;
+        background-color: #2980b9;
+        color: white;
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .form-container button:hover {
+        background-color: #1f6391;
+    }
+
+    .form-container .error {
+        margin-top: 10px;
+        color: #e74c3c;
+        background-color: #fcecec;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .form-container .success {
+        margin-top: 10px;
+        color: #2ecc71;
+        background-color: #eafaf1;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+</style>
 </head>
 <body>
     <div class="form-container">

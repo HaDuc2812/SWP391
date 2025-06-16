@@ -11,77 +11,65 @@
     <head>
         <meta charset="UTF-8">
         <title>Send Verification Code</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f6f8;
-                margin: 0;
-                padding: 0;
-            }
+         <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-            .main-container {
-                max-width: 600px;
-                margin: 60px auto;
-                padding: 30px;
-                background-color: #ffffff;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            }
+        .main-container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
 
-            h2 {
-                text-align: center;
-                color: #2c3e50;
-                margin-bottom: 30px;
-            }
+        .main-container h2 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
 
-            label {
-                font-weight: bold;
-                display: block;
-                margin-bottom: 8px;
-            }
+        .main-container label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
 
-            .form-control {
-                width: 100%;
-                padding: 10px;
-                font-size: 14px;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                margin-bottom: 20px;
-            }
+        .main-container input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
 
-            .btn-primary {
-                padding: 10px 20px;
-                font-size: 14px;
-                border-radius: 6px;
-                border: none;
-                background-color: #2980b9;
-                color: white;
-                cursor: pointer;
-                width: 100%;
-                transition: background-color 0.3s ease;
-            }
+        .main-container input[type="submit"] {
+            width: 100%;
+            background-color: #2980b9;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-            .btn-primary:hover {
-                background-color: #1f6391;
-            }
-
-            .error-msg {
-                color: red;
-                text-align: center;
-                margin-top: 10px;
-            }
-
-            @media (max-width: 600px) {
-                .main-container {
-                    margin: 30px 10px;
-                    padding: 20px;
-                }
-
-                .btn-primary {
-                    width: 100%;
-                }
-            }
-        </style>
+        .main-container input[type="submit"]:hover {
+            background-color: #1f6391;
+        }
+    </style>
     </head>
     <body>
         <div class="main-container">

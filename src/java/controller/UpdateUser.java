@@ -4,6 +4,7 @@
  */
 package controller;
 
+import static controller.RegisterSevlet.PASSWORD_PATTERN;
 import dal.DAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.regex.Pattern;
 import model.User;
 
 /**
@@ -60,6 +62,9 @@ public class UpdateUser extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
+    public static final Pattern PASSWORD_PATTERN = Pattern.compile(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$"
+    );
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -87,32 +92,39 @@ public class UpdateUser extends HttpServlet {
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
 
-        StringBuilder message = new StringBuilder();
         DAO dao = new DAO();
         boolean updated = false;
 
+        // Name
         if (name != null && !name.trim().isEmpty()) {
             dao.updateUser(user.getUser_id(), "name", name.trim());
             user.setUsername(name.trim());
             updated = true;
         }
 
+        // Phone
         if (phone != null && !phone.trim().isEmpty()) {
             dao.updateUser(user.getUser_id(), "phone", phone.trim());
             user.setPhone(phone.trim());
             updated = true;
         }
 
+        // Address
         if (address != null && !address.trim().isEmpty()) {
             dao.updateUser(user.getUser_id(), "address", address.trim());
             user.setAddress(address.trim());
             updated = true;
         }
 
-        if (password != null && !password.isEmpty()) {
-            if (confirmPassword == null || !password.equals(confirmPassword)) {
-                request.setAttribute("mess", "Password and Confirm Password do not match.");
-                request.getRequestDispatcher("editProfile.jsp").forward(request, response);
+        // Password validation with your predefined regex
+        if (password != null && !password.trim().isEmpty()) {
+            if (!PASSWORD_PATTERN.matcher(password).matches()) {
+                request.setAttribute("mess", "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character (@$!%*?&).");
+                request.getRequestDispatcher("userprofile.jsp").forward(request, response);
+                return;
+            } else if (!password.equals(confirmPassword)) {
+                request.setAttribute("mess", "Confirm password does not match.");
+                request.getRequestDispatcher("userprofile.jsp").forward(request, response);
                 return;
             } else {
                 dao.updateUser(user.getUser_id(), "password", password);
@@ -127,7 +139,7 @@ public class UpdateUser extends HttpServlet {
             request.setAttribute("mess", "No changes were made.");
         }
 
-        session.setAttribute("user", user);  // Update session user info
+        session.setAttribute("user", user); // Refresh session info
         request.getRequestDispatcher("userprofile.jsp").forward(request, response);
     }
 
