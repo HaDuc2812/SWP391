@@ -289,7 +289,7 @@ public class DAO {
         return false;
     }
 
-    public List<Goods> searchProductByName(String keyword) {
+    public List<Goods> searchGoodsByName(String keyword) {
         List<Goods> list = new ArrayList<>();
         String sql = "select * from Goods where name like ?";
         try {

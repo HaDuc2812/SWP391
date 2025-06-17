@@ -5,12 +5,15 @@
 
 package controller;
 
+import dal.DAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import model.Goods;
 
 /**
  *
@@ -53,7 +56,13 @@ public class SearchServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        processRequest(request, response);
+        String searchKey = request.getParameter("searchKey");
+        DAO d = new DAO();
+        List<Goods> resultList = d.searchGoodsByName(searchKey);
+        
+        request.setAttribute("results", resultList);
+        request.setAttribute("searchKey", searchKey);
+        request.getRequestDispatcher("MainPage.jsp");
     } 
 
     /** 
@@ -66,7 +75,6 @@ public class SearchServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-       String sql = request.getParameter("sql")
     }
 
     /** 

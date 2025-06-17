@@ -97,6 +97,10 @@
         <div class="navbar">
             <a href="home" class="logo">IMS Dashboard</a>
             <div class="nav-links">
+                <form action="search" method="get" style="display: flex">
+                    <input type="text" name ="searchKey" placeholder="search">
+                    <button type="submit" style="padding: 5px 10px">Search</button>
+                </form><br>
                 <a href="goods">Hàng Hóa</a>
                 <a href="suppliers">Nhà Cung Cấp</a>
                 <a href="orders">Đơn Hàng</a>
