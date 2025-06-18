@@ -316,4 +316,31 @@ public class DAO {
         return list;
     }
 
+    //list all product for admin
+    public List<Goods> getAllGoods() {
+        List<Goods> list = new ArrayList<>();
+        String sql = "select * from Goods";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Goods g = new Goods(
+                        rs.getInt("good_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getInt("supplier_id"),
+                        rs.getDate("added_on") // java.sql.Timestamp is a subclass of java.util.Date
+                );
+                list.add(g);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
+
