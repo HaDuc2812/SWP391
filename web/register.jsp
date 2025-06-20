@@ -21,7 +21,7 @@
                 text-align: center;
             }
             input[type=text], input[type=password], input[type=email] {
-                width: 100%;
+                width: 90%;
                 padding: 12px;
                 margin: 8px 0 20px;
                 border: 1px solid #ccc;

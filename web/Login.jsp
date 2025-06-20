@@ -58,7 +58,7 @@
 
             .login-container input[type="text"],
             .login-container input[type="password"] {
-                width: 100%;
+                width: 90%;
                 padding: 12px;
                 margin: 8px 0 20px;
                 border: 1px solid #ccc;
@@ -109,7 +109,7 @@
                 <input type="password" name="password" placeholder="Password" required><br>
                 <input type="submit" value="Login">
             </form>
-
+            <br/>
             <div class="extra-links">
                 <a href="register.jsp" class="btn-link">Register</a> |
                 <a href="forgotPassword.jsp" class="btn-link">Forgot Password?</a>
