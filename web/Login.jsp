@@ -93,7 +93,7 @@
                 margin: 5px 0;
             }
         </style>
-        <jsp:include page="NavBar.jsp"></jsp:include>
+
     </head>
     <body>
         <div class="login-container">

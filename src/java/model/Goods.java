@@ -12,7 +12,7 @@ import java.sql.Date;
  */
 public class Goods {
     private int good_id;
-    private String good_name;
+    private String name;
     private String description;
     private String category;
     private double price;
@@ -22,7 +22,7 @@ public class Goods {
 
     public Goods(int good_id, String good_name, String description, String category, double price, int quantity, int supplier_id, Date added_on) {
         this.good_id = good_id;
-        this.good_name = good_name;
+        this.name = good_name;
         this.description = description;
         this.category = category;
         this.price = price;
@@ -39,12 +39,12 @@ public class Goods {
         this.good_id = good_id;
     }
 
-    public String getGood_name() {
-        return good_name;
+    public String getName() {
+        return name;
     }
 
-    public void setGood_name(String good_name) {
-        this.good_name = good_name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -97,7 +97,7 @@ public class Goods {
 
     @Override
     public String toString() {
-        return "Goods{" + "good_id=" + good_id + ", good_name=" + good_name + ", description=" + description + ", category=" + category + ", price=" + price + ", quantity=" + quantity + ", supplier_id=" + supplier_id + ", added_on=" + added_on + '}';
+        return "Goods{" + "good_id=" + good_id + ", good_name=" + name + ", description=" + description + ", category=" + category + ", price=" + price + ", quantity=" + quantity + ", supplier_id=" + supplier_id + ", added_on=" + added_on + '}';
     }
     
     

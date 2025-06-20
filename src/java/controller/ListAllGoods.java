@@ -56,25 +56,15 @@ public class ListAllGoods extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        String role = (session != null) ? (String) session.getAttribute("role") : null;
 
-        // 1) Correct spelling of “Administrator”
-        // 2) Add a leading slash to Login.jsp path
-        if (role == null || !"Administrator".equalsIgnoreCase(role)) {
-            response.sendRedirect(request.getContextPath() + "/Login.jsp");
-            return;
-        }
-
-        // Fetch goods and forward to JSP
         DAO dao = new DAO();
-        List<Goods> goodsList = dao.getAllGoods();
-        request.setAttribute("goodsList", goodsList);
-        request.getRequestDispatcher("/adminDashboard.jsp")
-                .forward(request, response);
+        List<Goods> listG = dao.getAllGoods(); // This is confirmed working
+
+        request.setAttribute("goodsList", listG); // Set before forward
+        request.getRequestDispatcher("MainPage.jsp").forward(request, response);
+
     }
 
     /**

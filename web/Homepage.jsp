@@ -131,34 +131,7 @@
 
         </style>
     </head>
-    <script>
-        const slides = document.getElementById('slides');
-        const totalSlides = document.querySelectorAll('.slide').length;
-        const slideWidth = 800;
-        const dots = document.querySelectorAll('.dot');
-        let index = 0;
 
-        function showSlide(i) {
-            slides.style.transform = `translateX(-${i * slideWidth}px)`;
-            dots.forEach(dot => dot.classList.remove('active'));
-            dots[i].classList.add('active');
-        }
-
-        function nextSlide() {
-            index = (index + 1) % totalSlides;
-            showSlide(index);
-        }
-
-        function prevSlide() {
-            index = (index - 1 + totalSlides) % totalSlides;
-            showSlide(index);
-        }
-
-        function goToSlide(i) {
-            index = i;
-            showSlide(i);
-        }
-    </script>
 
     <body>
 
@@ -170,7 +143,7 @@
                     <input type="text" name="searchKey" placeholder="search">
                     <button type="submit">Search</button>
                 </form>
-                <a href="goods">Hàng Hóa</a>
+                <a href="MainPage.jsp">Hàng Hóa</a>
                 <a href="suppliers">Nhà Cung Cấp</a>
                 <a href="orders">Đơn Hàng</a>
                 <a href="requests">Yêu Cầu KH</a>
@@ -212,6 +185,35 @@
             <button onclick="goToSlide(1)" class="dot"></button>
             <button onclick="goToSlide(2)" class="dot"></button>
         </div>
+        <script>
+            const slides = document.getElementById('slides');
+            const totalSlides = document.querySelectorAll('.slide').length;
+            const slideWidth = 800;
+            const dots = document.querySelectorAll('.dot');
+            let index = 0;
+
+            function showSlide(i) {
+                slides.style.transform = `translateX(-${i * slideWidth}px)`;
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[i].classList.add('active');
+            }
+
+            function nextSlide() {
+                index = (index + 1) % totalSlides;
+                showSlide(index);
+            }
+
+            function prevSlide() {
+                index = (index - 1 + totalSlides) % totalSlides;
+                showSlide(index);
+            }
+
+            function goToSlide(i) {
+                index = i;
+                showSlide(i);
+            }
+        </script>
+
 
         <!-- Footer -->
         <div class="footer">

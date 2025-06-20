@@ -5,9 +5,12 @@
 package dal;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -289,41 +292,15 @@ public class DAO {
         return false;
     }
 
-    public List<Goods> searchGoodsByName(String keyword) {
+    public List<Goods> searchGoods(String keyword) {
         List<Goods> list = new ArrayList<>();
-        String sql = "select * from Goods where name like ?";
-        try {
-            conn = DBContext.getConnection();
-            ps = conn.prepareStatement(sql);
+        String sql = "SELECT * FROM Goods WHERE name LIKE ? OR category LIKE ?";
 
-            ps.setString(1, "%" + keyword + "%");
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Goods g = new Goods(rs.getInt("good_id"),
-                        rs.getString("good_name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getInt("supplier_id"),
-                        rs.getDate("added_on"));
-                list.add(g);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    //list all product for admin
-    public List<Goods> getAllGoods() {
-        List<Goods> list = new ArrayList<>();
-        String sql = "select * from Goods";
-        try {
-            conn = DBContext.getConnection();
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            String kw = "%" + keyword + "%";
+            ps.setString(1, kw);
+            ps.setString(2, kw);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Goods g = new Goods(
                         rs.getInt("good_id"),
@@ -333,7 +310,7 @@ public class DAO {
                         rs.getDouble("price"),
                         rs.getInt("quantity"),
                         rs.getInt("supplier_id"),
-                        rs.getDate("added_on") // java.sql.Timestamp is a subclass of java.util.Date
+                        rs.getDate("added_on")
                 );
                 list.add(g);
             }
@@ -342,5 +319,37 @@ public class DAO {
         }
         return list;
     }
-}
 
+    public List<Goods> getAllGoods() {
+        List<Goods> list = new ArrayList<>();
+        String sql = "SELECT good_id, name, description, category, price, quantity, supplier_id, added_on FROM Goods";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (conn == null) {
+                System.err.println("Database connection is null.");
+                return list;
+            }
+            while (rs.next()) {
+                list.add(new Goods(
+                        rs.getInt("good_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getInt("supplier_id"),
+                        rs.getDate("added_on")
+                ));
+
+            }
+
+        } catch (SQLException e) {
+            System.err.println("SQL Exception while fetching goods: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+}
