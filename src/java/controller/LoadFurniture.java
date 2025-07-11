@@ -11,15 +11,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
-import model.Goods;
+import model.Product;
+import model.Shop;
 
 /**
  *
  * @author HA DUC
  */
-public class ListAllGoods extends HttpServlet {
+public class LoadFurniture extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +38,10 @@ public class ListAllGoods extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ListAllGoods</title>");
+            out.println("<title>Servlet LoadFurniture</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ListAllGoods at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet LoadFurniture at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -56,15 +56,21 @@ public class ListAllGoods extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        DAO dao = new DAO();
-        List<Goods> listG = dao.getAllGoods(); // This is confirmed working
-
-        request.setAttribute("goodsList", listG); // Set before forward
-        request.getRequestDispatcher("MainPage.jsp").forward(request, response);
-
+        DAO d = new DAO();
+       try{
+           
+       
+        List<Product> products = d.getAllGoods();
+        List<Shop> shop = d.getAllShops();
+        request.setAttribute("products", products);
+        request.setAttribute("shops", shop);
+        request.getRequestDispatcher("shopsPlaceOrders.jsp").forward(request, response);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**

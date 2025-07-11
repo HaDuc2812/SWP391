@@ -22,9 +22,10 @@
     <div class="bg-dark text-white p-3 sidebar">
         <h4>Store Admin</h4>
         <ul class="nav flex-column mt-4">
-            <li class="nav-item"><a class="nav-link text-white" href="dashboard.jsp">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="inventoryDashboard.jsp">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="product-stock.jsp">Product Stock</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="employee-stats.jsp">Employee Stats</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="${pageContext.request.contextPath}/datapush?action=requestToSupplier">Request to Suppliers</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="ordersFromStores.jsp">Orders from Stores</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="Homepage.jsp">Logout</a></li>
         </ul>
     </div>

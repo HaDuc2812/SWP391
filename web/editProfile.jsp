@@ -1,5 +1,13 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="entity.User" %>
+<%
+    User currentUser = (User) session.getAttribute("user");
+    if (currentUser == null) {
+        response.sendRedirect("Login.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -7,112 +15,146 @@
         <title>Edit Profile</title>
         <!-- Add CSS here -->
     </head>
+
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 0;
         }
 
         .main-container {
-            max-width: 600px;
-            margin: 60px auto;
+            max-width: 500px;
+            margin: 50px auto;
             padding: 30px;
             background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
 
         h2 {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            color: #333;
         }
 
-        .mb-3 {
-            margin-bottom: 20px;
+        form {
+            display: flex;
+            flex-direction: column;
         }
 
-        .form-control {
-            width: 100%;
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="date"],
+        select {
             padding: 10px;
-            font-size: 14px;
+            margin-bottom: 15px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 5px;
+            font-size: 14px;
         }
 
-        .btn {
-            padding: 10px 20px;
-            font-size: 14px;
-            border-radius: 6px;
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        button[type="submit"] {
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
             transition: background-color 0.3s ease;
         }
 
-        .btn-primary {
-            background-color: #2980b9;
-            color: white;
+        button[type="submit"]:hover {
+            background-color: #0056b3;
         }
 
-        .btn-primary:hover {
-            background-color: #1f6391;
-        }
-
-        .text-center {
+        p#error-msg,
+        p[style*="color: red"] {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
             text-align: center;
         }
 
-        p.text-center {
-            color: green;
-            font-weight: bold;
-            margin-top: -10px;
-            margin-bottom: 20px;
-        }
-
-        /* Responsive */
         @media (max-width: 600px) {
             .main-container {
-                margin: 30px 10px;
+                margin: 20px;
                 padding: 20px;
             }
 
-            .btn {
-                width: 100%;
+            input,
+            select {
+                font-size: 16px;
             }
         }
     </style>
-
     <body>
         <div class="main-container">
             <h2>Edit Profile</h2>
 
-            <form action="updateuser" method="POST" class="mb-3">
-                <div class="mb-3">
-                    <input type="text" id="name" name="name" class="form-control" placeholder="Name">
-                </div>
+            <form action="updateuser" method="POST">
+                <label>Full Name</label>
+                <input type="text" name="fullname" value="<%= currentUser.getFullname() %>" required><br/>
 
-                <div class="mb-3">
-                    <input type="text" id="phone" name="phone" class="form-control" placeholder="Phone">
-                </div>
+                <label>Email</label>
+                <input type="email" name="email" value="<%= currentUser.getEmail() %>" readonly><br/>
 
-                <div class="mb-3">
-                    <input type="text" id="address" name="address" class="form-control" placeholder="Address">
-                </div>
+                <label>Phone Number</label>
+                <input type="text" name="phonenumber" value="<%= currentUser.getPhonenumber() %>"><br/>
 
-                <div class="mb-3">
-                    <input type="password" id="password" name="password" class="form-control mb-2" placeholder="New Password">
-                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control mb-2" placeholder="Confirm Password">
-                </div>
+                <label>Gender</label>
+                <select name="gender">
+                    <option value="Male" <%= "Male".equals(currentUser.getGender()) ? "selected" : "" %>>Male</option>
+                    <option value="Female" <%= "Female".equals(currentUser.getGender()) ? "selected" : "" %>>Female</option>
+                    <option value="Other" <%= "Other".equals(currentUser.getGender()) ? "selected" : "" %>>Other</option>
+                </select><br/>
 
-                <p id="error-msg" style="color: red; margin-top: 5px;"></p>
+                <label>Address</label>
+                <input type="text" name="address" value="<%= currentUser.getAddress() %>"><br/>
 
-                <div class="text-center" style="margin-top: 15px;">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </div>
+                <label>Date of Birth</label>
+                <input type="date" name="dob" value="<%= currentUser.getDob() != null ? currentUser.getDob().toString() : "" %>"><br/>
+
+                <label>Status</label>
+                <select name="status">
+                    <option value="Active" <%= "Active".equals(currentUser.getStatus()) ? "selected" : "" %>>Active</option>
+                    <option value="Inactive" <%= "Inactive".equals(currentUser.getStatus()) ? "selected" : "" %>>Inactive</option>
+                </select><br/>
+
+                <label>Old Password</label>
+                <input type="password" name="oldPassword"><br/>
+
+                <label>New Password</label>
+                <input type="password" name="password"><br/>
+
+                <label>Confirm New Password</label>
+                <input type="password" name="confirmPassword"><br/>
+
+                <button type="submit">Update Profile</button>
+
+                <% String message = (String) request.getAttribute("mess"); %>
+                <% if (message != null) { %>
+                <p style="color: red;"><%= message %></p>
+                <% } %>
             </form>
-
         </div>
     </body>
 </html>

@@ -12,10 +12,16 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import model.Goods;
-import model.User;
+import entity.Accounts;
+import model.Product;
+import entity.User;
+import java.sql.Statement;
+import model.OrderItem;
+import model.Shop;
+import model.Suppliers;
 
 /**
  *
@@ -27,10 +33,8 @@ public class DAO {
     PreparedStatement ps = null;
     ResultSet rs = null;
 
-    public User login(String email, String password) {
-        String query = "select * from Users\n"
-                + "where username = ?\n"
-                + "and password_hash = ?";
+    public Accounts login(String email, String password) {
+        String query = "SELECT * FROM Users WHERE email = ? AND [password] = ?";
         try {
             System.out.println("Connecting to database for login...");
             conn = DBContext.getConnection();
@@ -39,17 +43,18 @@ public class DAO {
             ps.setString(2, password);
             System.out.println("Executing query: " + ps);
             rs = ps.executeQuery();
-            while (rs.next()) {
+            if (rs.next()) {
                 System.out.println("Login successful for user: " + email);
-                return new User(rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getString("role"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getDate("created_at"));
+                return new Accounts(
+                        rs.getInt("UserID"),
+                        rs.getString("Email"),
+                        rs.getString("Password"),
+                        rs.getString("FullName"),
+                        rs.getString("Role")
+                );
+            } else {
+                System.out.println("Login failed: incorrect email or password.");
             }
-            System.out.println("Login failed for user: " + email);
         } catch (SQLException e) {
             System.out.println("SQL Exception during login: " + e.getMessage());
             e.printStackTrace();
@@ -65,29 +70,34 @@ public class DAO {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                // Handle closing errors
                 ex.printStackTrace();
             }
         }
         return null;
     }
 
-    public boolean register(String username, String password, String role, String fullName, String email) {
-        String sql = "insert into Users(username, password_hash, role, full_name, email) VALUES (?, ?, ?, ?, ?)";
+    public boolean register(String fullName, String email, String phone, String password, String gender,
+            String role, String address, Date dob) {
+        String sql = "INSERT INTO Users (FullName, Email, PhoneNumber, Password, Gender, Role, Address, DateOfBirth) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, username);
-            ps.setString(2, password);
-            ps.setString(3, role);
-            ps.setString(4, fullName);
-            ps.setString(5, email);
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, phone);
+            ps.setString(4, password); // consider hashing this
+            ps.setString(5, gender);
+            ps.setString(6, role);
+            ps.setString(7, address);
+            ps.setDate(8, dob); // java.sql.Date
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            close();
+            close(); // Make sure close() closes conn, ps, rs if needed
         }
         return false;
     }
@@ -126,29 +136,99 @@ public class DAO {
     }
 
     public void updateUser(int user_id, String field, String value) {
-        String sql = "update Users\n"
-                + "set " + field + " = ?\n"
-                + "where user_id = ?";
-        try {
-            conn = DBContext.getConnection();
-            ps = conn.prepareStatement(sql);
+        if (!isAllowedField(field)) {
+            throw new IllegalArgumentException("Invalid field name: " + field);
+        }
+        String sql = "UPDATE Users SET " + field + " = ? WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, value);
             ps.setInt(2, user_id);
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (ps != null) {
-                    ps.close();
-                }
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
+    }
+
+    // For Date field specifically (DOB)
+    public void updateUser(int user_id, String field, java.sql.Date value) {
+        if (!"DOB".equals(field)) {
+            throw new IllegalArgumentException("Only 'DOB' can be updated with Date value.");
+        }
+        String sql = "UPDATE Users SET " + field + " = ? WHERE UserID  = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, value);
+            ps.setInt(2, user_id);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Helper method to whitelist allowed fields
+    private boolean isAllowedField(String field) {
+        if (field == null) {
+            return false;
+        }
+        switch (field) {
+            case "FullName":
+            case "PhoneNumber":
+            case "Gender":
+            case "Address":
+            case "Password":
+            case "Status":
+            case "Role":
+            case "Email":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM Users WHERE UserID = ?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setUser_id(rs.getInt("UserID"));
+                u.setFullname(rs.getString("FullName"));
+                u.setEmail(rs.getString("Email"));
+                u.setPassword(rs.getString("Password"));
+                u.setPhonenumber(rs.getString("PhoneNumber"));
+                u.setGender(rs.getString("Gender"));
+                u.setRole(rs.getString("Role"));
+                u.setAddress(rs.getString("Address"));
+                u.setDob(rs.getDate("DateOfBirth"));
+                u.setStatus(rs.getString("Status"));
+                return u;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Shop> getAllShops() {
+        List<Shop> shops = new ArrayList<>();
+        String sql = "SELECT * FROM Shops";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Shop shop = new Shop();
+                shop.setShopId(rs.getInt("shop_id"));
+                shop.setShopName(rs.getString("name"));
+                shop.setLocation(rs.getString("address"));
+                shops.add(shop);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // You can also use logging
+        }
+
+        return shops;
     }
 
     public int countGoods() {
@@ -264,6 +344,19 @@ public class DAO {
         return false;
     }
 
+    public boolean isPhoneRegistered(String phoneNumber) {
+        String query = "SELECT 1 FROM Users WHERE PhoneNumber = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, phoneNumber);
+            ResultSet rs = ps.executeQuery();
+            return rs.next(); // true if phone number exists
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     //generate verification code
     public String generatVerificationCode() {
         Random rand = new Random();
@@ -292,64 +385,370 @@ public class DAO {
         return false;
     }
 
-    public List<Goods> searchGoods(String keyword) {
-        List<Goods> list = new ArrayList<>();
-        String sql = "SELECT * FROM Goods WHERE name LIKE ? OR category LIKE ?";
+//    public List<Product> searchGoods(String keyword) {
+//        List<Product> list = new ArrayList<>();
+//        String sql = "SELECT * FROM Goods WHERE name LIKE ? OR category LIKE ?";
+//
+//        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+//            String kw = "%" + keyword + "%";
+//            ps.setString(1, kw);
+//            ps.setString(2, kw);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                Product g = new Product(
+//                        rs.getInt("good_id"),
+//                        rs.getString("name"),
+//                        rs.getString("description"),
+//                        rs.getString("category"),
+//                        rs.getDouble("price"),
+//                        rs.getInt("quantity"),
+//                        rs.getInt("supplier_id"),
+//                        rs.getDate("added_on")
+//                );
+//                list.add(g);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return list;
+//    }
+    public List<Product> getAllGoods() {
+        List<Product> goods = new ArrayList<>();
+        String sql = "SELECT * FROM Furniture";
 
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            String kw = "%" + keyword + "%";
-            ps.setString(1, kw);
-            ps.setString(2, kw);
-            ResultSet rs = ps.executeQuery();
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
             while (rs.next()) {
-                Goods g = new Goods(
-                        rs.getInt("good_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getInt("supplier_id"),
-                        rs.getDate("added_on")
-                );
-                list.add(g);
+                Product g = new Product();
+                g.setComboID(rs.getInt("ComboID"));
+                g.setComboName(rs.getString("ComboName"));
+                g.setPoster(rs.getString("Poster"));
+                g.setDescription(rs.getString("Description"));
+                g.setStatus(rs.getString("Status"));
+                g.setBrand(rs.getString("Brand"));
+                g.setCategory(rs.getString("Category"));
+                g.setMaterial(rs.getString("Material"));
+                g.setStockQuantity(rs.getInt("StockQuantity"));
+                g.setCost(rs.getDouble("Cost"));
+                g.setCreatedDate(rs.getDate("CreatedDate"));
+                g.setLastUpdated(rs.getDate("LastUpdated"));
+
+                goods.add(g);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return goods;
+    }
+
+    public Shop getShopbyId(int shopId) {
+        String sql = "select * from Shops where shop_id=?";
+        Shop shop = null;
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, shopId);
+            if (rs.next()) {
+                shop = new Shop();
+                shop.setShopId(rs.getInt("shop_id"));
+                shop.setShopName(rs.getString("name"));
+                shop.setLocation(rs.getString("Address"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return list;
+        return shop;
     }
 
-    public List<Goods> getAllGoods() {
-        List<Goods> list = new ArrayList<>();
-        String sql = "SELECT good_id, name, description, category, price, quantity, supplier_id, added_on FROM Goods";
+//    public List<Product> getLowQuantityGoods(int threshold) {
+//        List<Product> lowStock = new ArrayList<>();
+//        String sql = "Select * from Goods where quantity < ?";
+//        try {
+//            conn = DBContext.getConnection();
+//            ps = conn.prepareStatement(sql);
+//
+//            ps.setInt(1, threshold);
+//            rs = ps.executeQuery();
+//            while (rs.next()) {
+//                Product g = new Product();
+//                g.setGood_id(rs.getInt("good_id"));
+//                g.setName(rs.getString("name"));
+//                g.setDescription(rs.getString("description"));
+//                g.setCategory(rs.getString("category"));
+//                g.setPrice(rs.getDouble("price"));
+//                g.setQuantity(rs.getInt("quantity"));
+//                g.setSupplier_id(rs.getInt("supplier_id"));
+//                g.setAdded_on(rs.getDate("added_on"));
+//                lowStock.add(g);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return lowStock;
+//    }
+//
+//    public List<Product> getFilteredGoods(String[] categories, Double minPrice, Double maxPrice) {
+//        List<Product> goods = new ArrayList<>();
+//        StringBuilder sql = new StringBuilder("SELECT * FROM Goods WHERE 1=1");
+//        List<Object> params = new ArrayList<>();
+//
+//        // Add categories filter
+//        if (categories != null && categories.length > 0) {
+//            sql.append(" AND category IN (");
+//            for (int i = 0; i < categories.length; i++) {
+//                sql.append("?");
+//                if (i < categories.length - 1) {
+//                    sql.append(", ");
+//                }
+//                params.add(categories[i]);
+//            }
+//            sql.append(")");
+//        }
+//
+//        // Add price filter
+//        if (minPrice != null && maxPrice != null) {
+//            sql.append(" AND price BETWEEN ? AND ?");
+//            params.add(minPrice);
+//            params.add(maxPrice);
+//        }
+//
+//        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+//
+//            for (int i = 0; i < params.size(); i++) {
+//                ps.setObject(i + 1, params.get(i));
+//            }
+//
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                Product g = new Product();
+//                g.setGood_id(rs.getInt("good_id"));
+//                g.setName(rs.getString("name"));
+//                g.setDescription(rs.getString("description"));
+//                g.setCategory(rs.getString("category"));
+//                g.setPrice(rs.getDouble("price"));
+//                g.setQuantity(rs.getInt("quantity"));
+//                g.setSupplier_id(rs.getInt("supplier_id"));
+//                g.setAdded_on(rs.getDate("added_on"));
+//                goods.add(g);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return goods;
+//    }
+    //shop orders from storage
+    public int placeShopOrder(int shopId, int placedByUserId, List<OrderItem> items, double total) {
+        int orderId = -1;
+        String orderSql = "INSERT INTO Orders (shop_id, order_date, status, total_cost, placed_by) VALUES (?, GETDATE(), 'Placed', ?, ?)";
+        String itemSql = "INSERT INTO Order_Items (order_id, good_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
 
-            if (conn == null) {
-                System.err.println("Database connection is null.");
-                return list;
+            // Insert into Orders
+            ps = conn.prepareStatement(orderSql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, shopId);
+            ps.setDouble(2, total);
+            ps.setInt(3, placedByUserId); // should be valid UserID (e.g., 9999 for "System")
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                orderId = rs.getInt(1);
             }
-            while (rs.next()) {
-                list.add(new Goods(
-                        rs.getInt("good_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getInt("supplier_id"),
-                        rs.getDate("added_on")
-                ));
 
+            ps.close();
+
+            // Insert order items
+            ps = conn.prepareStatement(itemSql);
+            for (OrderItem item : items) {
+                ps.setInt(1, orderId);
+                ps.setInt(2, item.getGoodId());
+                ps.setInt(3, item.getQuantity());
+                ps.setDouble(4, item.getUnitPrice());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return orderId;
+    }
+// Storage places an order to Supplier
+
+    public int placeStorageOrder(int supplierId, int userId, List<OrderItem> items, double total) {
+        int orderId = -1;
+        String orderSql = "INSERT INTO Orders (supplier_id, order_date, status, total_cost, placed_by) VALUES (?, GETDATE(), 'Placed', ?, ?)";
+        String itemSql = "INSERT INTO Order_Items (order_id, good_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
+
+            // Insert order
+            ps = conn.prepareStatement(orderSql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, supplierId);
+            ps.setDouble(2, total);
+            ps.setInt(3, userId);
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                orderId = rs.getInt(1);
+            }
+            ps.close();
+
+            // Insert order items
+            ps = conn.prepareStatement(itemSql);
+            for (OrderItem item : items) {
+                ps.setInt(1, orderId);
+                ps.setInt(2, item.getGoodId());
+                ps.setInt(3, item.getQuantity());
+                ps.setDouble(4, item.getUnitPrice());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return orderId;
+    }
+
+    public List<Suppliers> getAllSuppliers() {
+        List<Suppliers> suppliers = new ArrayList<>();
+        String sql = "select * from Suppliers order by supplier_id";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Suppliers su = new Suppliers();
+                su.setSname(rs.getString("name"));
+                su.setSupplierID(rs.getInt("supplier_id"));
+                su.setAddress(rs.getString("address"));
+                suppliers.add(su);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return suppliers;
+    }
+
+    public Product getProductById(int comboId) {
+        String sql = "SELECT * FROM Furniture WHERE ComboID = ?";
+        Product product = null;
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, comboId); // move this before executeQuery
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                product = new Product(); // or use Product if you're using that class name
+                product.setComboID(rs.getInt("ComboID"));
+                product.setComboName(rs.getString("ComboName"));
+                product.setPoster(rs.getString("Poster"));
+                product.setDescription(rs.getString("Description"));
+                product.setStatus(rs.getString("Status"));
+                product.setBrand(rs.getString("Brand"));
+                product.setCategory(rs.getString("Category"));
+                product.setMaterial(rs.getString("Material"));
+                product.setStockQuantity(rs.getInt("StockQuantity"));
+                product.setCost(rs.getDouble("Cost"));
+                product.setCreatedDate(rs.getDate("CreatedDate"));
+                product.setLastUpdated(rs.getDate("LastUpdated"));
             }
 
         } catch (SQLException e) {
-            System.err.println("SQL Exception while fetching goods: " + e.getMessage());
+            System.err.println("Error getting furniture by ID: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
-        return list;
+        return product;
     }
-
 }

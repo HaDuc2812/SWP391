@@ -1,16 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="model.User" %>
+<%@ page import="entity.User" %>
+
 <%
-    User currentUser = (User) session.getAttribute("user");
-    String fullName = currentUser != null ? currentUser.getFull_name() : "Khách";
+    User currentUser = (User) session.getAttribute("user"); // Full profile loaded after login
+    Object rawUser = session.getAttribute("user");
+    if (rawUser == null) {
+        out.println("Session has no 'user'");
+    } else {
+        out.println("User class is: " + rawUser.getClass().getName());
+    }
 %>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>Home Page</title>
         <style>
-            /* Reset cơ bản */
+            /* Reset and layout styles */
             * {
                 margin: 0;
                 padding: 0;
@@ -21,7 +28,6 @@
                 background-color: #f4f6f8;
             }
 
-            /* Navbar */
             .navbar {
                 display: flex;
                 justify-content: space-between;
@@ -29,24 +35,23 @@
                 background-color: #2c3e50;
                 padding: 10px 20px;
             }
-            .navbar .logo {
-                color: #ecf0f1;
-                font-size: 24px;
-                font-weight: bold;
-                text-decoration: none;
-            }
-            .navbar .nav-links a {
-                text-decoration: none;
+
+            .navbar a {
                 color: #bdc3c7;
+                text-decoration: none;
                 margin-left: 20px;
                 font-size: 16px;
             }
-            .navbar .nav-links a:hover {
+
+            .navbar a:hover {
                 color: #ecf0f1;
             }
-            .navbar .nav-links form {
+
+            .navbar form {
                 display: inline-flex;
             }
+
+            /* Slider styles */
             .slider {
                 width: 800px;
                 height: 500px;
@@ -59,7 +64,7 @@
 
             .slides {
                 display: flex;
-                width: 300%; /* 3 slides */
+                width: 300%;
                 transition: transform 0.5s ease-in-out;
             }
 
@@ -103,7 +108,6 @@
             .arrow.prev {
                 left: 20px;
             }
-
             .arrow.next {
                 right: 20px;
             }
@@ -118,50 +122,54 @@
                 width: 12px;
                 margin: 0 5px;
                 background-color: #bbb;
-                border: none;
                 border-radius: 50%;
                 display: inline-block;
                 cursor: pointer;
-                transition: background-color 0.3s;
             }
 
             .dot.active {
                 background-color: #333;
             }
 
+            .footer {
+                text-align: center;
+                margin-top: 40px;
+                color: #7f8c8d;
+                font-size: 14px;
+                padding: 20px 0;
+            }
         </style>
     </head>
-
 
     <body>
 
         <!-- Navbar -->
         <div class="navbar">
-            <a href="home" class="logo">IMS Dashboard</a>
-            <div class="nav-links">
-                <form action="search" method="get">
-                    <input type="text" name="searchKey" placeholder="search">
+            <div>
+                <form action="search" method="get" style="display:inline;">
+                    <input type="text" name="searchKey" placeholder="Search">
                     <button type="submit">Search</button>
                 </form>
-                <a href="MainPage.jsp">Hàng Hóa</a>
-                <a href="suppliers">Nhà Cung Cấp</a>
-                <a href="orders">Đơn Hàng</a>
-                <a href="requests">Yêu Cầu KH</a>
+                <a href="${pageContext.request.contextPath}/list">Product List</a>
+                <a href="orders">Orders</a>
+                <a href="${pageContext.request.contextPath}/loadFurniture?action=shopsPlaceOrders.jsp">Custom Request</a>
+            </div>
+            <div>
                 <% if (currentUser != null) { %>
-                <a href="userprofile.jsp">Xin chào, <%= fullName %></a>
-                <a href="logout">Đăng Xuất</a>
+                <a href="userprofile.jsp">Hello, <%= currentUser.getFullname() %></a>
+                <a href="logout">Logout</a>
                 <% } else { %>
-                <a href="Login.jsp">Đăng Nhập</a>
-                <a href="register.jsp">Đăng Ký</a>
+                <a href="Login.jsp">Login</a>
+                <a href="register.jsp">Register</a>
                 <% } %>
             </div>
         </div>
 
-        <!-- Slider container -->
+        <!-- Slider -->
         <div class="slider">
             <div class="slides" id="slides">
                 <div class="slide">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8zU4XwfH8MtQqKI_qP6lXNDwTOQlhz7w2DQ&s" alt="Slide 1"/>
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8zU4XwfH8MtQqKI_qP6lXNDwTOQlhz7w2DQ&s" alt="Slide 1" />
                     <div class="slide-caption">Quản lý Hàng Hóa dễ dàng</div>
                 </div>
                 <div class="slide">
@@ -174,17 +182,21 @@
                 </div>
             </div>
 
-            <!-- Arrows -->
             <button class="arrow prev" onclick="prevSlide()">&#10094;</button>
             <button class="arrow next" onclick="nextSlide()">&#10095;</button>
         </div>
 
-        <!-- Dots -->
         <div class="slide-buttons" id="slide-buttons">
             <button onclick="goToSlide(0)" class="dot active"></button>
             <button onclick="goToSlide(1)" class="dot"></button>
             <button onclick="goToSlide(2)" class="dot"></button>
         </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            &copy; 2025 IMS. Tất cả quyền được bảo lưu.
+        </div>
+
         <script>
             const slides = document.getElementById('slides');
             const totalSlides = document.querySelectorAll('.slide').length;
@@ -213,13 +225,6 @@
                 showSlide(i);
             }
         </script>
-
-
-        <!-- Footer -->
-        <div class="footer">
-            &copy; 2025 IMS. Tất cả quyền được bảo lưu.
-        </div>
-
 
     </body>
 </html>

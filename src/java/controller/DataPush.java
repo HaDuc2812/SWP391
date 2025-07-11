@@ -12,13 +12,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import model.Goods;
+import model.Product;
+import model.Suppliers;
 
 /**
  *
  * @author HA DUC
  */
-public class SearchServlet extends HttpServlet {
+public class DataPush extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +38,10 @@ public class SearchServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet SearchServlet</title>");
+            out.println("<title>Servlet DataPush</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet SearchServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DataPush at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,13 +59,16 @@ public class SearchServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String searchKey = request.getParameter("searchKey");
-        DAO dao = new DAO();
-        List<Goods> goodsList = dao.searchGoods(searchKey);
-
-        request.setAttribute("searchKey", searchKey);
-        request.setAttribute("goodsList", goodsList);
-        request.getRequestDispatcher("MainPage.jsp").forward(request, response);
+        DAO d = new DAO();
+        List<Suppliers> supplierList = d.getAllSuppliers();
+        List<Product> products = d.getAllGoods();
+        request.setAttribute("suppliers", supplierList);
+        request.setAttribute("products", products);
+        System.out.println("Debug: Supplier list size = " + supplierList.size());
+        for (Suppliers s : supplierList) {
+            System.out.println("Supplier ID: " + s.getSupplierID() + ", Name: " + s.getSname());
+        }
+        request.getRequestDispatcher("requestToSuppliers.jsp").forward(request, response);
     }
 
     /**
@@ -78,6 +82,7 @@ public class SearchServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        processRequest(request, response);
     }
 
     /**

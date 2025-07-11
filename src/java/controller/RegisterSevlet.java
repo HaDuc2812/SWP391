@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.regex.Pattern;
 import util.EmailUtil;
 
@@ -40,48 +42,6 @@ public class RegisterSevlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
-        String email = request.getParameter("email");
-
-        DAO d = new DAO();
-        String errorMsg = null;
-
-        // Validation
-        if (password == null || !PASSWORD_PATTERN.matcher(password).matches()|| password.length()>8) {
-            errorMsg = "Password phải dài hơn 8 kí tự, bao gồm chữ cái in hoa, in thường, số, ký tự đặc biệt, không trùng lặp kề nhau.";
-        } else if (!password.equals(confirmPassword)) {
-            errorMsg = "Confirm Password không khớp.";
-        } else if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {
-            errorMsg = "Email không đúng định dạng.";
-        }
-
-        if (errorMsg != null) {
-            request.setAttribute("error", errorMsg);
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-            return;
-        }
-
-        // Prepare
-        String verificationCode = d.generatVerificationCode(); // implement this
-        String subject = "Xác Minh Tài Khoản";
-        String message = "Your verification code is: " + verificationCode;
-
-        if (EmailUtil.sendEmail(email, subject, message)) {
-            HttpSession session = request.getSession();
-            session.setAttribute("verificationCode", verificationCode);
-            session.setAttribute("username", username);
-            session.setAttribute("password", password);
-            session.setAttribute("email", email);
-            session.setAttribute("verificationFor", "register");
-            request.getRequestDispatcher("VerifyCode.jsp").forward(request, response);
-        } else {
-            request.setAttribute("error", "Không thể gửi email xác minh.");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -107,11 +67,66 @@ public class RegisterSevlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+   @Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+
+    // Get all parameters from form
+    String fullName = request.getParameter("fullName");
+    String email = request.getParameter("email");
+    String phoneNumber = request.getParameter("phoneNumber");
+    String password = request.getParameter("password");
+    String confirmPassword = request.getParameter("confirmPassword");
+    String address = request.getParameter("address");
+    String dobStr = request.getParameter("dob");
+    String gender = request.getParameter("gender");
+    String roleFromForm = request.getParameter("role"); // Default "Customer" from form
+
+    // Check for password mismatch
+    if (!password.equals(confirmPassword)) {
+        request.setAttribute("error", "Passwords do not match.");
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+        return;
     }
+
+    // Parse date of birth
+    Date dob;
+    try {
+        dob = Date.valueOf(LocalDate.parse(dobStr));
+    } catch (Exception e) {
+        request.setAttribute("error", "Invalid date of birth format.");
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+        return;
+    }
+
+    DAO dao = new DAO();
+
+    // Check for duplicate email or phone number
+    if (dao.isEmailRegistered(email)) {
+        request.setAttribute("error", "Email is already registered.");
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+        return;
+    }
+    if (dao.isPhoneRegistered(phoneNumber)) {
+        request.setAttribute("error", "Phone number is already registered.");
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+        return;
+    }
+
+    // Assign "Administrator" to first user
+    String role = dao.countUsers() == 0 ? "Administrator" : "employees";
+
+    // Call DAO to register
+    boolean success = dao.register(fullName, email, phoneNumber, password, gender, role, address, dob);
+
+    if (success) {
+        response.sendRedirect("Login.jsp");
+    } else {
+        request.setAttribute("error", "Registration failed. Please try again.");
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+    }
+}
+
 
     /**
      * Returns a short description of the servlet.

@@ -104,9 +104,9 @@
 
         <div class="card-container">
             <%
-                List<Goods> goodsList = (List<Goods>) request.getAttribute("goodsList");
-                if (goodsList != null && !goodsList.isEmpty()) {
-                    for (Goods g : goodsList) {
+                List<Goods> goods = (List<Goods>) request.getAttribute("goodsList");
+                if (goods != null && !goods.isEmpty()) {
+                    for (Goods g : goods) {
             %>
             <div class="product-card">
                 <div class="product-name"><%= g.getName() %></div>

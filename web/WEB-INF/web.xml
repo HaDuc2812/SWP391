@@ -4,13 +4,41 @@
         <servlet-name>ListAllGoods</servlet-name>
         <servlet-class>controller.ListAllGoods</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>SearchServlet</servlet-name>
-        <url-pattern>/search</url-pattern>
-    </servlet-mapping>
+    <servlet>
+        <servlet-name>StorageOrderToSupplier</servlet-name>
+        <servlet-class>controller.StorageOrderToSupplier</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ShopOrders</servlet-name>
+        <servlet-class>controller.ShopOrders</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DataPush</servlet-name>
+        <servlet-class>controller.DataPush</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LoadFurniture</servlet-name>
+        <servlet-class>controller.LoadFurniture</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ListAllGoods</servlet-name>
         <url-pattern>/list</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StorageOrderToSupplier</servlet-name>
+        <url-pattern>/orderToSupplier</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ShopOrders</servlet-name>
+        <url-pattern>/shoporders</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DataPush</servlet-name>
+        <url-pattern>/datapush</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LoadFurniture</servlet-name>
+        <url-pattern>/loadFurniture</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>Homepage.jsp</welcome-file>
@@ -26,10 +54,6 @@
     <servlet>
         <servlet-name>UpdatePasswordServlet</servlet-name>
         <servlet-class>controller.UpdatePasswordServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>SearchServlet</servlet-name>
-        <servlet-class>controller.SearchServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>VerifyServlet</servlet-name>

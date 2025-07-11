@@ -8,14 +8,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.User;
+import entity.Accounts;
+import entity.User;
 
 /**
- * 1) Handles login (POST to /LoginServlet).
- * 2) For GET /LoginServlet, simply forward to Login.jsp.
- * 3) For GET /userprofile, check session and forward to profile.jsp if logged in, else redirect to Login.jsp.
+ * 1) Handles login (POST to /LoginServlet). 2) For GET /LoginServlet, simply
+ * forward to Login.jsp. 3) For GET /userprofile, check session and forward to
+ * profile.jsp if logged in, else redirect to Login.jsp.
  *
- * NOTE: All of your original login‐and‐redirect logic is untouched; we only added a new mapping and a branch in doGet().
+ * NOTE: All of your original login‐and‐redirect logic is untouched; we only
+ * added a new mapping and a branch in doGet().
  */
 @WebServlet(name = "LoginServlet", urlPatterns = {"/LoginServlet", "/userprofile"})
 public class LoginServlet extends HttpServlet {
@@ -23,40 +25,47 @@ public class LoginServlet extends HttpServlet {
     DAO dao = new DAO();
 
     /**
-     * Processes requests for both HTTP GET (when mapped to /LoginServlet) and POST (login submission).
+     * Processes requests for both HTTP GET (when mapped to /LoginServlet) and
+     * POST (login submission).
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         response.setContentType("text/html;charset=UTF-8");
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        String fullName = request.getParameter("username");
-        User u = dao.login(username, password);
 
-        if (u == null) {
+        DAO dao = new DAO(); // Make sure DAO is instantiated
+        Accounts acc = dao.login(username, password); // Assumes DAO.login returns Accounts
+
+        if (acc == null) {
             request.setAttribute("mess", "Wrong username or password");
             request.getRequestDispatcher("Login.jsp").forward(request, response);
         } else {
-            // Store the User object into session so profile.jsp can read it later
+            // Store the Accounts object in session
             HttpSession session = request.getSession();
-            session.setAttribute("user", u);
-            System.out.println("User stored in session: " + session.getAttribute("user"));
+            session.setAttribute("account", acc);
+            User fullUser = dao.getUserById(acc.getUsersId());
+            session.setAttribute("user", fullUser);
+            System.out.println("Full user: " + fullUser);
 
-            // Check role and redirect
-            String role = u.getRole();
-            System.out.println("Logged in with role: " + role);
-            if ("Administrator".equals(role)) {
-                response.sendRedirect(request.getContextPath() + "/adminDashboard.jsp");
-            } else if ("InventoryManager".equals(role)) {
-                response.sendRedirect(request.getContextPath() + "/inventoryDashboard.jsp");
-            } else if ("StoreManager".equals(role)) {
-                response.sendRedirect(request.getContextPath() + "/storeDashboard.jsp");
-            } else if ("Customer".equals(role)) {
-                response.sendRedirect(request.getContextPath() + "/Homepage.jsp");
+            // Also store role if you plan to check it in JSP
+            session.setAttribute("role", acc.getRole());
+
+            System.out.println("Account stored in session: " + acc.getEmail());
+            System.out.println("Logged in with role: " + acc.getRole());
+
+            // Redirect based on role
+            String role = acc.getRole();
+            if ("Administrator".equalsIgnoreCase(role)) {
+                response.sendRedirect("adminDashboard.jsp");
+            } else if ("InventoryManager".equalsIgnoreCase(role)) {
+                response.sendRedirect("inventoryDashboard.jsp");
+            } else if ("StoreManager".equalsIgnoreCase(role)) {
+                response.sendRedirect("storeDashboard.jsp");
+            } else if ("Customer".equalsIgnoreCase(role)) {
+                response.sendRedirect("Homepage.jsp");
             } else {
-                // fallback if an unexpected role is stored
-                response.sendRedirect(request.getContextPath() + "/Homepage.jsp");
+                response.sendRedirect("Homepage.jsp"); // fallback
             }
         }
     }
@@ -64,8 +73,10 @@ public class LoginServlet extends HttpServlet {
     /**
      * Handles GET requests.
      *
-     * - If the request URL is "/LoginServlet", just show the login form (Login.jsp).  
-     * - If the request URL is "/userprofile", check session; if user is logged in, forward to profile.jsp. Otherwise redirect to Login.jsp.
+     * - If the request URL is "/LoginServlet", just show the login form
+     * (Login.jsp). - If the request URL is "/userprofile", check session; if
+     * user is logged in, forward to profile.jsp. Otherwise redirect to
+     * Login.jsp.
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

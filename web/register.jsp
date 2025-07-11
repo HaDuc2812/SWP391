@@ -54,10 +54,21 @@
             <% } %>
 
             <form action="register" method="post">
-                <input type="text" name="username" placeholder="Username" required />
-                <input type="password" name="password" placeholder="Password" required />
-                <input type="password" name="confirmPassword" placeholder="Confirm Password" />
+                <input type="text" name="fullName" placeholder="Full Name" required />
                 <input type="email" name="email" placeholder="Email" required />
+                <input type="text" name="phoneNumber" placeholder="Phone Number" required />
+                <input type="password" name="password" placeholder="Password" required />
+                <input type="password" name="confirmPassword" placeholder="Confirm Password" required />
+                <input type="text" name="address" placeholder="Address" required />
+                <input type="date" name="dob" placeholder="Date of Birth" required />
+                <select name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+                <br /><br />
+                <input type="hidden" name="role" value="Customer" />
                 <input type="submit" value="Register" />
             </form>
         </div>

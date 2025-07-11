@@ -99,6 +99,12 @@
 
             <!-- Main Content -->
             <div class="main-content">
+                <%
+                    String path = request.getContextPath();
+                %>
+                <script>
+                    window.location.href = "<%= path %>/list";
+                </script>
                 <div id="goods" class="content-section active-section">
                     <h2>Danh sách Hàng Hóa</h2>
                     <table class="goods-table">

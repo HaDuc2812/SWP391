@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBContext {
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName= InventoryManagementSystem;";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName= InventoryManagementSystem2;";
     private static final String USERNAME = "sa";           // Update with your username
     private static final String PASSWORD = "123";  // Update with your password
 
@@ -29,7 +29,7 @@ public class DBContext {
     }
 
     private final String serverName = "localhost";
-    private final String dbName = " InventoryManagementSystem";
+    private final String dbName = " InventoryManagementSystem2";
     private final String portNumber = "1433";
     private final String instance = "";
     private final String userID = "sa";
