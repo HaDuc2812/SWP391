@@ -18,10 +18,10 @@ import java.util.Random;
 import entity.Accounts;
 import model.Product;
 import entity.User;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Statement;
-import model.OrderItem;
-import model.Shop;
-import model.Suppliers;
+import model.*;
 
 /**
  *
@@ -570,6 +570,8 @@ public class DAO {
             ps.setInt(1, shopId);
             ps.setDouble(2, total);
             ps.setInt(3, placedByUserId); // should be valid UserID (e.g., 9999 for "System")
+            System.out.println("Placing order with total: " + total);
+
             ps.executeUpdate();
 
             rs = ps.getGeneratedKeys();
@@ -583,7 +585,7 @@ public class DAO {
             ps = conn.prepareStatement(itemSql);
             for (OrderItem item : items) {
                 ps.setInt(1, orderId);
-                ps.setInt(2, item.getGoodId());
+                ps.setInt(2, item.getGood_id());
                 ps.setInt(3, item.getQuantity());
                 ps.setDouble(4, item.getUnitPrice());
                 ps.addBatch();
@@ -647,7 +649,7 @@ public class DAO {
             ps = conn.prepareStatement(itemSql);
             for (OrderItem item : items) {
                 ps.setInt(1, orderId);
-                ps.setInt(2, item.getGoodId());
+                ps.setInt(2, item.getGood_id());
                 ps.setInt(3, item.getQuantity());
                 ps.setDouble(4, item.getUnitPrice());
                 ps.addBatch();
@@ -750,5 +752,239 @@ public class DAO {
         }
 
         return product;
+    }
+
+    public List<Order> getAllShopOrders() {
+        List<Order> orders = new ArrayList<>();
+        String sql = "SELECT * FROM Orders WHERE shop_id IS NOT NULL ORDER BY order_date DESC";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Order o = new Order();
+                o.setOrderId(rs.getInt("order_id"));
+                o.setShopid(rs.getInt("shop_id"));
+                o.setSupplierId(null); // because we know it's null
+                o.setOrderDate(rs.getTimestamp("order_date"));
+                o.setStatus(rs.getString("status"));
+                o.setTotalCost(rs.getDouble("total_cost"));
+                o.setPlacedBy(rs.getInt("placed_by"));
+                orders.add(o);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return orders;
+    }
+
+    public String getShopNameById(int shopId) {
+        String name = "unknown";
+        String sql = "SELECT [name] FROM Shops WHERE shop_id =?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, shopId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                name = rs.getString("name");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    public String getUsernameById(int userId) {
+        String name = "unknown";
+        String sql = "SELECT fullName FROM Users WHERE UserID = ?;";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                name = rs.getString("fullName");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    public Order getOrderWithDetails(int orderId) throws SQLException {
+        String sql = "SELECT \n"
+                + "    o.order_id,\n"
+                + "    o.order_date,\n"
+                + "    o.status,\n"
+                + "    o.total_cost,\n"
+                + "    o.placed_by,\n"
+                + "    o.shop_id,\n"
+                + "    o.supplier_id,\n"
+                + "    oi.good_id,\n"
+                + "    oi.quantity,\n"
+                + "    oi.unit_price,\n"
+                + "    f.ComboName AS good_name\n"
+                + "FROM \n"
+                + "    Orders o\n"
+                + "JOIN \n"
+                + "    Order_Items oi ON o.order_id = oi.order_id\n"
+                + "JOIN \n"
+                + "    Furniture f ON oi.good_id = f.ComboID\n"
+                + "WHERE \n"
+                + "    o.order_id = 37;";
+        Order order = null;
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            try {
+                rs = ps.executeQuery();
+                List<OrderItem> items = new ArrayList<>();
+                while (rs.next()) {
+                    if (order == null) {
+                        order = new Order();
+                        order.setOrderId(rs.getInt("order_id"));
+                        order.setOrderDate(rs.getDate("order_date"));
+                        order.setStatus(rs.getString("status"));
+                        order.setTotalCost(rs.getDouble("total_cost"));
+                        order.setPlacedBy(rs.getInt("placed_by"));
+                        order.setShopid(rs.getInt("shop_id"));
+                    }
+                    OrderItem item = new OrderItem();
+                    item.setGood_id(rs.getInt("good_id"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    item.setUnitPrice(rs.getDouble("unit_price"));
+                    items.add(item);
+                }
+                if (order != null) {
+                    order.setItems(items);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return order;
+    }
+
+    public String getComboNameById(int comboId) throws SQLException {
+        String sql = "SELECT ComboName FROM Furniture WHERE ComboID = ?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, comboId);
+            try {
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getString("ComboName");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<OrderItem> getOderItemsByOrderId(int orderId) {
+        List<OrderItem> items = new ArrayList<>();
+        double totalCost = 0;
+
+        String sql = "SELECT oi.*, o.total_cost\n"
+                + "FROM Order_Items oi\n"
+                + "JOIN Orders o ON oi.order_id = o.order_id\n"
+                + "WHERE oi.order_id = ?;";
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                OrderItem item = new OrderItem();
+                item.setOrderItemId(rs.getInt("order_item_id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setGood_id(rs.getInt("good_id"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setUnitPrice(rs.getDouble("unit_price"));
+
+                totalCost = rs.getDouble("total_cost"); // Same for all rows
+                item.setTotalPrice(rs.getDouble("total_cost"));
+                items.add(item);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return items;
+    }
+
+    public Order getOrderById(int orderId) {
+        Order order = null;
+        String sql = "select * from Orders where order_id = ?";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                order = new Order();
+                order.setOrderId(rs.getInt("order_id"));
+                order.setShopid(rs.getInt("shop_id"));
+                order.setOrderDate(rs.getTimestamp("order_date"));
+                order.setTotalCost(rs.getDouble("total_cost"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return order;
+    }
+
+    public int getComboStockBYId(int comboId) throws SQLException {
+        String sql = "SELECT  StockQuantity FROM Furniture WHERE ComboID = ?;";
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, comboId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("StockQuantity");
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+    public void deductComboStocks(int comboId, int quantity) throws SQLException {
+        String sql = "UPDATE Furniture SET StockQuantity = StockQuantity - ? WHERE ComboID = ?";
+        try{
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, quantity);
+            ps.setInt(2, comboId);
+            ps.executeUpdate();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+    public void updateOrderStatus(int orderId, String status) throws SQLException{
+        String sql = "UPDATE Orders SET status = ? WHERE order_id = ?";
+        try{
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, status);
+            ps.setInt(2, orderId);
+            ps.executeUpdate();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
     }
 }

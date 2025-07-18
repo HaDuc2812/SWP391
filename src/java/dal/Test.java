@@ -9,6 +9,7 @@ import model.Product;
 import entity.Accounts;
 import entity.User;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import model.OrderItem;
 import model.Shop;
@@ -20,7 +21,7 @@ import model.Suppliers;
  */
 public class Test {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         DAO dao = new DAO();
 //    List<Goods> goodsList = dao.getAllGoods();
 //
@@ -103,34 +104,47 @@ public class Test {
 //        for(Shop sh : shop){
 //            System.out.println("name "+ sh.getShopId());
 //            System.out.println(" decs" + sh.getShopName());
+////      // Step 1: Prepare test values
+//        int shopId = 1;                 // assume shop ID 1 exists
+//        int placedByUserId = 8;      // assume user ID 9999 exists
+//        List<OrderItem> items = new ArrayList<>();
+//
+//        // Create sample OrderItems (orderItemId = 0, orderId = 0 since not used in this context)
+//        items.add(new OrderItem(0, 0, 101, 5, 10.0));   // good_id=101, quantity=5, unit_price=10.0
+//        items.add(new OrderItem(0, 0, 102, 3, 15.5));   // good_id=102, quantity=3, unit_price=15.5
+//
+//        // Step 2: Calculate total cost
+//        double totalCost = 0;
+//        for (OrderItem item : items) {
+//            totalCost += item.getQuantity() * item.getUnitPrice();
 //        }
-        int shopId = 1; // Must exist in your Shops table
-        int placedByUserId = 9999; // Must exist in Users table (e.g., system user)
+//
+//        // Step 3: Call DAO method
+//        int orderId = dao.placeShopOrder(shopId, placedByUserId, items, totalCost);
+//
+//        // Step 4: Output result
+//        if (orderId != -1) {
+//            System.out.println("✅ Order placed successfully. Order ID: " + orderId);
+//        } else {
+//            System.out.println("❌ Failed to place order.");
+//        }
+//    }
+        int testOrderId = 41; // Replace with an existing order_id from your DB
 
-        // Create dummy order items
-        List<OrderItem> items = new ArrayList<>();
+        List<OrderItem> items = dao.getOderItemsByOrderId(testOrderId);
 
-        OrderItem item1 = new OrderItem();
-        item1.setGoodId(1);  // Use a real goodId from your Furniture table
-        item1.setQuantity(2);
-        item1.setUnitPrice(150.00);
-        items.add(item1);
-
-        OrderItem item2 = new OrderItem();
-        item2.setGoodId(2);  // Another real goodId
-        item2.setQuantity(1);
-        item2.setUnitPrice(300.00);
-        items.add(item2);
-
-        double total = 2 * 150.00 + 1 * 300.00;
-
-        int orderId = dao.placeShopOrder(shopId, placedByUserId, items, total);
-
-        if (orderId > 0) {
-            System.out.println("✅ Order placed successfully. Order ID: " + orderId);
+        if (items.isEmpty()) {
+            System.out.println("No order items found for order ID: " + testOrderId);
         } else {
-            System.out.println("❌ Failed to place order.");
+            System.out.println("Order Items for Order ID: " + testOrderId);
+            for (OrderItem item : items) {
+                System.out.println("Item ID: " + item.getOrderItemId());
+                System.out.println("Good ID: " + item.getGood_id());
+                System.out.println("Quantity: " + item.getQuantity());
+                System.out.println("Unit Price: " + item.getUnitPrice());
+                System.out.println("Total Cost (same for all items): " + item.getTotalPrice());
+                System.out.println("----------------------------");
+            }
         }
     }
 }
-

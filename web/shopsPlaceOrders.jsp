@@ -82,7 +82,7 @@
                     </thead>
                     <tbody> <tr>
                             <td>
-                                <select name="goodId" class="product-select" required onchange="updatePrice(this)"> 
+                                <select name="goodId[]" class="product-select" required onchange="updatePrice(this)"> 
                                     <option value="">-- Select Product --</option> 
                                     <c:forEach items="${products}" var="p"> 
                                         <option value="${p.comboID}" data-price="${p.cost}"> ${p.comboName} (${p.brand}) - $${p.cost} </option> 
@@ -90,11 +90,11 @@
                                 </select> 
                             </td> 
                             <td> 
-                                <input type="number" name="quantity" value="1" min="1" onchange="calculateRowTotal(this)"> 
+                                <input type="number" name="quantity[]" value="1" min="1" onchange="calculateRowTotal(this)"> 
                             </td> 
                             <td class="unit-price">0.00</td> 
                             <td class="item-total">0.00</td> 
-                            <td> <input type="hidden" name="price" class="price-field" value="0.00"> 
+                            <td> <input type="hidden" name="price[]" class="price-field" value="0.00"> 
                                 <button type="button" class="btn" onclick="removeRow(this)">Remove</button> 
                             </td> 
                         </tr>
@@ -111,23 +111,38 @@
                 <input type="hidden" name="totalAmount" id="totalAmount" value="0">
                 <button type="button" class="btn" onclick="addRow()">Add Item</button>
                 <button type="submit" class="btn">Place Order</button>
+
             </form>
+            <a href="inventoryDashboard.jsp" class="btn">← Return to Dashboard</a>
+
         </div> 
         <script>
             function updatePrice(select) {
                 const price = parseFloat(select.selectedOptions[0].getAttribute("data-price")) || 0;
                 const row = select.closest("tr");
+
+                // Set visible unit price
                 row.querySelector(".unit-price").textContent = price.toFixed(2);
+
+                // Set hidden input price value
+                row.querySelector(".price-field").value = price.toFixed(2);
+
                 calculateRowTotal(select);
             }
+
             function calculateRowTotal(el) {
                 const row = el.closest("tr");
-                const qty = parseInt(row.querySelector("input[name='quantity']").value) || 0;
+
+                const qtyInput = row.querySelector("input[name='quantity[]']");
+                const qty = parseInt(qtyInput.value) || 0;
+
                 const price = parseFloat(row.querySelector(".unit-price").textContent) || 0;
                 const total = qty * price;
+
                 row.querySelector(".item-total").textContent = total.toFixed(2);
                 updateGrandTotal();
             }
+
             function updateGrandTotal() {
                 let sum = 0;
                 document.querySelectorAll(".item-total").forEach(td => {
@@ -136,22 +151,37 @@
                 document.getElementById("grand-total").textContent = sum.toFixed(2);
                 document.getElementById("totalAmount").value = sum.toFixed(2);
             }
+
             function addRow() {
                 const tbody = document.querySelector("#itemsTable tbody");
                 const newRow = tbody.rows[0].cloneNode(true);
-                newRow.querySelectorAll("select, input").forEach(input => input.value = "");
+
+                // Reset select
+                const productSelect = newRow.querySelector("select[name='goodId[]']");
+                productSelect.selectedIndex = 0;
+
+                // Reset quantity
+                newRow.querySelector("input[name='quantity[]']").value = 1;
+
+                // Reset hidden price field
+                newRow.querySelector("input[name='price[]']").value = "0.00";
+
+                // Reset displayed prices
                 newRow.querySelector(".unit-price").textContent = "0.00";
                 newRow.querySelector(".item-total").textContent = "0.00";
+
                 tbody.appendChild(newRow);
             }
+
             function removeRow(button) {
                 const row = button.closest("tr");
                 const tbody = document.querySelector("#itemsTable tbody");
+
                 if (tbody.rows.length > 1) {
                     row.remove();
                     updateGrandTotal();
                 }
             }
-        </script> 
+        </script>
     </body> 
 </html>

@@ -25,7 +25,7 @@
             <li class="nav-item"><a class="nav-link text-white" href="inventoryDashboard.jsp">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="product-stock.jsp">Product Stock</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="${pageContext.request.contextPath}/datapush?action=requestToSupplier">Request to Suppliers</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="ordersFromStores.jsp">Orders from Stores</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="${pageContext.request.contextPath}/listfromshops?action=shopOrderList.jsp">Orders from Stores</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="Homepage.jsp">Logout</a></li>
         </ul>
     </div>

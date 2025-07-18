@@ -12,12 +12,20 @@ public class OrderItem {
 
     private int orderItemId;
     private int orderId;
-    private int goodId;
+    private int good_id;
     private int quantity;
     private double unitPrice;
-
+    private double totalPrice;
     // Constructors, getters, and setters
     public OrderItem() {
+    }
+
+    public OrderItem(int orderItemId, int orderId, int goodId, int quantity, double unitPrice) {
+        this.orderItemId = orderItemId;
+        this.orderId = orderId;
+        this.good_id = goodId;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
     }
 
     // Add all getters and setters here
@@ -37,12 +45,12 @@ public class OrderItem {
         this.orderId = orderId;
     }
 
-    public int getGoodId() {
-        return goodId;
+    public int getGood_id() {
+        return good_id;
     }
 
-    public void setGoodId(int goodId) {
-        this.goodId = goodId;
+    public void setGood_id(int good_id) {
+        this.good_id = good_id;
     }
 
     public int getQuantity() {
@@ -59,6 +67,14 @@ public class OrderItem {
 
     public void setUnitPrice(double unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 
 }

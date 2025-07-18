@@ -1,4 +1,5 @@
-
+package model;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +8,8 @@ import model.OrderItem;
 public class Order {
 
     private int orderId;
-    private int supplierId;
+    private Integer supplierId;
+    private Integer shopid;
     private Date orderDate;
     private String status; // "Placed", "Shipped", "Received"
     private double totalCost;
@@ -38,13 +40,7 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public int getSupplierId() {
-        return supplierId;
-    }
-
-    public void setSupplierId(int supplierId) {
-        this.supplierId = supplierId;
-    }
+   
 
     public Date getOrderDate() {
         return orderDate;
@@ -76,7 +72,7 @@ public class Order {
         this.totalCost = totalCost;
     }
 
-    public int getPlacedBy() {
+        public int getPlacedBy() {
         return placedBy;
     }
 
@@ -102,4 +98,22 @@ public class Order {
     public void setItems(List<OrderItem> items) {
         this.items = items;
     }
+
+    public Integer getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Integer supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public Integer getShopid() {
+        return shopid;
+    }
+
+    public void setShopid(Integer shopid) {
+        this.shopid = shopid;
+    }
+
+   
 }

@@ -73,9 +73,10 @@ public class ShopOrders extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         try {
-// Retrieve user session (assuming only authorized managers/admins access this)
             HttpSession session = request.getSession();
             User user = (User) session.getAttribute("user");
 
@@ -84,34 +85,63 @@ public class ShopOrders extends HttpServlet {
                 return;
             }
 
-            int userId = user.getUser_id(); // who places the order
-            int shopId = Integer.parseInt(request.getParameter("shopId")); // which shop is ordering
-            String[] goodIds = request.getParameterValues("goodId");
-            String[] quantities = request.getParameterValues("quantity");
-            String[] prices = request.getParameterValues("price");
+            int userId = user.getUser_id();
+            int shopId = Integer.parseInt(request.getParameter("shopId"));
+            String[] goodIds = request.getParameterValues("goodId[]");
+            String[] quantities = request.getParameterValues("quantity[]");
+            String[] prices = request.getParameterValues("price[]");
 
-            if (goodIds == null || quantities == null || prices == null) {
+            if (goodIds == null || quantities == null || prices == null || goodIds.length == 0) {
                 request.setAttribute("status", "error");
-                request.setAttribute("message", "Missing order item data.");
+                request.setAttribute("message", "Missing or empty order item data.");
                 request.getRequestDispatcher("shopOrderResult.jsp").forward(request, response);
                 return;
             }
 
             List<OrderItem> items = new ArrayList<>();
-            double total = 0;
-
+            System.out.println("Items to insert: " + items.size());
+            for (OrderItem item : items) {
+                System.out.println("Item - GoodID: " + item.getGood_id() + ", Qty: " + item.getQuantity() + ", Price: " + item.getUnitPrice());
+            }
             for (int i = 0; i < goodIds.length; i++) {
-                int goodId = Integer.parseInt(goodIds[i]);
-                int quantity = Integer.parseInt(quantities[i]);
-                double price = Double.parseDouble(prices[i]);
+                String goodIdStr = goodIds[i];
+                String quantityStr = quantities[i];
+                String priceStr = prices[i];
+
+                if (goodIdStr == null || quantityStr == null || priceStr == null
+                        || goodIdStr.trim().isEmpty() || quantityStr.trim().isEmpty() || priceStr.trim().isEmpty()) {
+                    continue; // skip empty entries
+                }
+
+                int productId = Integer.parseInt(goodIdStr);
+                int quantity = Integer.parseInt(quantityStr);
+                double price = Double.parseDouble(priceStr);
 
                 OrderItem item = new OrderItem();
-                item.setGoodId(goodId);
+                item.setGood_id(productId);
                 item.setQuantity(quantity);
                 item.setUnitPrice(price);
 
                 items.add(item);
-                total += price * quantity;
+            }
+
+            if (items.isEmpty()) {
+                request.setAttribute("status", "error");
+                request.setAttribute("message", "No valid order items found.");
+                request.getRequestDispatcher("shopOrderResult.jsp").forward(request, response);
+                return;
+            }
+
+            double total = 0;
+            String totalAmountParam = request.getParameter("totalAmount");
+            if (totalAmountParam != null && !totalAmountParam.trim().isEmpty()) {
+                try {
+                    total = Double.parseDouble(totalAmountParam.trim());
+                } catch (NumberFormatException e) {
+                    total = 0; // fallback or log error
+                }
+            } else {
+                total = 0; // fallback
             }
 
             DAO dao = new DAO();

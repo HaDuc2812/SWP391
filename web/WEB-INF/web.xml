@@ -20,6 +20,18 @@
         <servlet-name>LoadFurniture</servlet-name>
         <servlet-class>controller.LoadFurniture</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ListOrdersFromShops</servlet-name>
+        <servlet-class>controller.ListOrdersFromShops</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>OrderDetailControll</servlet-name>
+        <servlet-class>controller.OrderDetailControll</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ApproveOrders</servlet-name>
+        <servlet-class>controller.ApproveOrders</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ListAllGoods</servlet-name>
         <url-pattern>/list</url-pattern>
@@ -39,6 +51,18 @@
     <servlet-mapping>
         <servlet-name>LoadFurniture</servlet-name>
         <url-pattern>/loadFurniture</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ListOrdersFromShops</servlet-name>
+        <url-pattern>/listfromshops</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrderDetailControll</servlet-name>
+        <url-pattern>/orderDetail</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApproveOrders</servlet-name>
+        <url-pattern>/approveorders</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>Homepage.jsp</welcome-file>

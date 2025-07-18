@@ -134,7 +134,7 @@ public class StorageOrderToSupplier extends HttpServlet {
                 }
 
                 OrderItem item = new OrderItem();
-                item.setGoodId(goodId);
+                item.setGood_id(goodId);
                 item.setQuantity(quantity);
                 item.setUnitPrice(product.getCost()); // Use price from database
                 items.add(item);

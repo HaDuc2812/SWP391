@@ -81,7 +81,7 @@
             </c:choose>
 
             <div class="back-btn">
-                <a href="shopsPlaceOrders.jsp">Back to Order Page</a>
+                <a href="${pageContext.request.contextPath}/loadFurniture?action=shopsPlaceOrders.jsp" class="btn">Back to Shops Orders</a>
             </div>
         </div> 
     </body> 
