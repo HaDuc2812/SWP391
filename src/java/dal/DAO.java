@@ -423,9 +423,9 @@ public class DAO {
 
             while (rs.next()) {
                 Product g = new Product();
-                g.setComboID(rs.getInt("ComboID"));
-                g.setComboName(rs.getString("ComboName"));
-                g.setPoster(rs.getString("Poster"));
+                g.setFurnitureID(rs.getInt("FurnitureID"));
+                g.setFurnitureName(rs.getString("FurnitureName"));
+                g.setPoster(rs.getString("Image"));
                 g.setDescription(rs.getString("Description"));
                 g.setStatus(rs.getString("Status"));
                 g.setBrand(rs.getString("Brand"));
@@ -460,12 +460,13 @@ public class DAO {
     }
 
     public Shop getShopbyId(int shopId) {
-        String sql = "select * from Shops where shop_id=?";
+        String sql = "SELECT * FROM Shops WHERE shop_id=?";
         Shop shop = null;
         try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setInt(1, shopId);
+            rs = ps.executeQuery(); // ✅ Required line
             if (rs.next()) {
                 shop = new Shop();
                 shop.setShopId(rs.getInt("shop_id"));
@@ -474,8 +475,76 @@ public class DAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return shop;
+    }
+
+    public List<Order> getAllSupplierOrders() {
+        List<Order> orders = new ArrayList<>();
+        String sql = "SELECT * FROM Orders WHERE shop_id IS NULL ORDER BY order_date DESC";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Order o = new Order();
+                o.setOrderId(rs.getInt("order_id"));
+                o.setShopid(null); // because it's a supplier order, shop_id is null
+                o.setSupplierId(rs.getInt("supplier_id")); // supplierId is valid
+                o.setOrderDate(rs.getTimestamp("order_date"));
+                o.setStatus(rs.getString("status"));
+                o.setTotalCost(rs.getDouble("total_cost"));
+                o.setPlacedBy(rs.getInt("placed_by"));
+                orders.add(o);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return orders;
+    }
+
+    public String getSupplierNameById(int supplierId) {
+        String sql = "SELECT name FROM Suppliers WHERE supplier_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, supplierId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getOrderStatus(int orderId) {
+        String sql = "SELECT status FROM Orders WHERE order_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 //    public List<Product> getLowQuantityGoods(int threshold) {
@@ -707,7 +776,7 @@ public class DAO {
     }
 
     public Product getProductById(int comboId) {
-        String sql = "SELECT * FROM Furniture WHERE ComboID = ?";
+        String sql = "SELECT * FROM Furniture WHERE FurnitureID = ?";
         Product product = null;
 
         try {
@@ -718,8 +787,8 @@ public class DAO {
 
             if (rs.next()) {
                 product = new Product(); // or use Product if you're using that class name
-                product.setComboID(rs.getInt("ComboID"));
-                product.setComboName(rs.getString("ComboName"));
+                product.setFurnitureID(rs.getInt("FurnitureID"));
+                product.setFurnitureName(rs.getString("FurnitureName"));
                 product.setPoster(rs.getString("Poster"));
                 product.setDescription(rs.getString("Description"));
                 product.setStatus(rs.getString("Status"));
@@ -825,13 +894,13 @@ public class DAO {
                 + "    oi.good_id,\n"
                 + "    oi.quantity,\n"
                 + "    oi.unit_price,\n"
-                + "    f.ComboName AS good_name\n"
+                + "    f.FurnitureName AS good_name\n"
                 + "FROM \n"
                 + "    Orders o\n"
                 + "JOIN \n"
                 + "    Order_Items oi ON o.order_id = oi.order_id\n"
                 + "JOIN \n"
-                + "    Furniture f ON oi.good_id = f.ComboID\n"
+                + "    Furniture f ON oi.good_id = f.FurnitureID\n"
                 + "WHERE \n"
                 + "    o.order_id = 37;";
         Order order = null;
@@ -870,8 +939,8 @@ public class DAO {
         return order;
     }
 
-    public String getComboNameById(int comboId) throws SQLException {
-        String sql = "SELECT ComboName FROM Furniture WHERE ComboID = ?";
+    public String getFurnitureNameById(int comboId) throws SQLException {
+        String sql = "SELECT FurnitureName FROM Furniture WHERE FurnitureID = ?";
         try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
@@ -879,7 +948,7 @@ public class DAO {
             try {
                 rs = ps.executeQuery();
                 if (rs.next()) {
-                    return rs.getString("ComboName");
+                    return rs.getString("FurnitureName");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -947,8 +1016,8 @@ public class DAO {
         return order;
     }
 
-    public int getComboStockBYId(int comboId) throws SQLException {
-        String sql = "SELECT  StockQuantity FROM Furniture WHERE ComboID = ?;";
+    public int getFurnitureStockBYId(int comboId) throws SQLException {
+        String sql = "SELECT  StockQuantity FROM Furniture WHERE FurnitureID = ?;";
         try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
@@ -957,33 +1026,35 @@ public class DAO {
             if (rs.next()) {
                 return rs.getInt("StockQuantity");
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return 0;
     }
-    public void deductComboStocks(int comboId, int quantity) throws SQLException {
-        String sql = "UPDATE Furniture SET StockQuantity = StockQuantity - ? WHERE ComboID = ?";
-        try{
+
+    public void deductFurnitureStocks(int comboId, int quantity) throws SQLException {
+        String sql = "UPDATE Furniture SET StockQuantity = StockQuantity - ? WHERE FurnitureID = ?";
+        try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setInt(1, quantity);
             ps.setInt(2, comboId);
             ps.executeUpdate();
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    public void updateOrderStatus(int orderId, String status) throws SQLException{
+
+    public void updateOrderStatus(int orderId, String status) throws SQLException {
         String sql = "UPDATE Orders SET status = ? WHERE order_id = ?";
-        try{
+        try {
             conn = DBContext.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, status);
             ps.setInt(2, orderId);
             ps.executeUpdate();
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

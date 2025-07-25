@@ -83,10 +83,11 @@
                     <tbody> <tr>
                             <td>
                                 <select name="goodId[]" class="product-select" required onchange="updatePrice(this)"> 
-                                    <option value="">-- Select Product --</option> 
                                     <c:forEach items="${products}" var="p"> 
-                                        <option value="${p.comboID}" data-price="${p.cost}"> ${p.comboName} (${p.brand}) - $${p.cost} </option> 
-                                    </c:forEach> 
+                                        <option value="${p.furnitureID}" data-price="${p.cost}"> 
+                                            ${p.furnitureName} (${p.brand}) - $${p.cost} 
+                                        </option> 
+                                    </c:forEach>
                                 </select> 
                             </td> 
                             <td> 
@@ -113,7 +114,7 @@
                 <button type="submit" class="btn">Place Order</button>
 
             </form>
-            <a href="inventoryDashboard.jsp" class="btn">← Return to Dashboard</a>
+            <a href="Homepage.jsp" class="btn">← Return to Dashboard</a>
 
         </div> 
         <script>

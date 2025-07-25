@@ -12,8 +12,8 @@ import java.sql.Date;
  */
 public class Product {
 
-    private int comboID;
-    private String comboName;
+    private int furnitureID;
+    private String furnitureName;
     private String poster;
     private String description;
     private String status;
@@ -28,9 +28,9 @@ public class Product {
     public Product() {
     }
 
-    public Product(int comboID, String comboName, String poster, String description, String status, String brand, String category, String material, int stockQuantity, double cost, Date createdDate, Date lastUpdated) {
-        this.comboID = comboID;
-        this.comboName = comboName;
+    public Product(int furnitureID, String furnitureName, String poster, String description, String status, String brand, String category, String material, int stockQuantity, double cost, Date createdDate, Date lastUpdated) {
+        this.furnitureID = furnitureID;
+        this.furnitureName = furnitureName;
         this.poster = poster;
         this.description = description;
         this.status = status;
@@ -43,20 +43,20 @@ public class Product {
         this.lastUpdated = lastUpdated;
     }
 
-    public int getComboID() {
-        return comboID;
+    public int getFurnitureID() {
+        return furnitureID;
     }
 
-    public void setComboID(int comboID) {
-        this.comboID = comboID;
+    public void setFurnitureID(int furnitureID) {
+        this.furnitureID = furnitureID;
     }
 
-    public String getComboName() {
-        return comboName;
+    public String getFurnitureName() {
+        return furnitureName;
     }
 
-    public void setComboName(String comboName) {
-        this.comboName = comboName;
+    public void setFurnitureName(String furnitureName) {
+        this.furnitureName = furnitureName;
     }
 
     public String getPoster() {

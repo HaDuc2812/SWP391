@@ -138,9 +138,11 @@
                                 <select name="goodId" class="product-select" required onchange="updatePrice(this)">
                                     <option value="">-- Select Product --</option>
                                     <c:forEach items="${products}" var="p">
-                                        <option value="${p.comboID}" data-price="${p.cost}">
-                                            ${p.comboName} ($${p.cost})
-                                        </option>
+                                        <c:forEach items="${products}" var="p"> 
+                                            <option value="${p.furnitureID}" data-price="${p.cost}"> 
+                                                ${p.furnitureName} (${p.brand}) - $${p.cost} 
+                                            </option> 
+                                        </c:forEach>
                                     </c:forEach>
                                 </select>
                             </td>
@@ -163,7 +165,7 @@
 
                 <div class="form-group">
                     <input type="submit" class="btn" value="Place Order">
-                    <a href="dashboard.jsp" class="btn btn-secondary">Cancel</a>
+                    <a href="inventoryDashboard.jsp" class="btn btn-secondary">Cancel</a>
                 </div>
 
 

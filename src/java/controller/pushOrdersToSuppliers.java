@@ -11,19 +11,16 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import model.Order;
-import model.OrderItem;
-import model.Shop;
 
 /**
  *
  * @author HA DUC
  */
-public class OrderDetailControll extends HttpServlet {
+public class pushOrdersToSuppliers extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -42,10 +39,10 @@ public class OrderDetailControll extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet OrderDetailControll</title>");
+            out.println("<title>Servlet pushOrdersToSuppliers</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet OrderDetailControll at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet pushOrdersToSuppliers at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -61,45 +58,24 @@ public class OrderDetailControll extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int orderId = Integer.parseInt(request.getParameter("order_id"));
-        //get list of order items
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         DAO dao = new DAO();
-        List<OrderItem> orderItems = dao.getOderItemsByOrderId(orderId);
-        Map<Integer, String> comboNames = new HashMap<>();
+        List<Order> suppliersOrders = dao.getAllSupplierOrders();
 
-        for (OrderItem item : orderItems) {
-            int comboId = item.getGood_id();
-            try {
-                String comboName = dao.getFurnitureNameById(comboId);
-                if (comboName != null) {
-                    comboNames.put(comboId, comboName);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+        // Map to store supplierId -> supplierName
+        Map<Integer, String> supplierNames = new HashMap<>();
+        for (Order order : suppliersOrders) {
+            int supplierId = order.getSupplierId();
+            if (!supplierNames.containsKey(supplierId)) {
+                String name = dao.getSupplierNameById(supplierId);
+                supplierNames.put(supplierId, name);
             }
         }
-        Order order = dao.getOrderById(orderId);
-        String shopName = "unknown";
-        if (order != null && order.getShopid() > 0) {
-            shopName = dao.getShopNameById(order.getShopid());
-        }
-        String shopLocation = "unknown";
 
-        if (order != null && order.getShopid() > 0) {
-            Shop shop = dao.getShopbyId(order.getShopid()); // ⚠️ You must implement this method
-            if (shop != null) {
-                shopName = shop.getShopName();
-                shopLocation = shop.getLocation();
-            }
-        }
-        request.setAttribute("orderItems", orderItems);
-        request.setAttribute("comboNames", comboNames);
-        request.setAttribute("orderId", orderId);
-        request.setAttribute("shopName", shopName);
-        request.setAttribute("shopLocation", shopLocation);
-        request.getRequestDispatcher("orderDetails.jsp").forward(request, response);
-
+        request.setAttribute("supplierOrders", suppliersOrders);
+        request.setAttribute("supplierNames", supplierNames);
+        request.getRequestDispatcher("requestedList.jsp").forward(request, response);
     }
 
     /**

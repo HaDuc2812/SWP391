@@ -11,6 +11,7 @@ import entity.User;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import model.Order;
 import model.OrderItem;
 import model.Shop;
 import model.Suppliers;
@@ -129,22 +130,68 @@ public class Test {
 //            System.out.println("❌ Failed to place order.");
 //        }
 //    }
-        int testOrderId = 41; // Replace with an existing order_id from your DB
+//        int testOrderId = 41; // Replace with an existing order_id from your DB
+//
+//        List<OrderItem> items = dao.getOderItemsByOrderId(testOrderId);
+//
+//        if (items.isEmpty()) {
+//            System.out.println("No order items found for order ID: " + testOrderId);
+//        } else {
+//            System.out.println("Order Items for Order ID: " + testOrderId);
+//            for (OrderItem item : items) {
+//                System.out.println("Item ID: " + item.getOrderItemId());
+//                System.out.println("Good ID: " + item.getGood_id());
+//                System.out.println("Quantity: " + item.getQuantity());
+//                System.out.println("Unit Price: " + item.getUnitPrice());
+//                System.out.println("Total Cost (same for all items): " + item.getTotalPrice());
+//                System.out.println("----------------------------");
+//            }
+//        }
+//    }
+//        List<Product> products = dao.getAllGoods();
+//
+//        if (products.isEmpty()) {
+//            System.out.println("No products found.");
+//        } else {
+//            for (Product p : products) {
+//                System.out.println("ID: " + p.getFurnitureID());
+//                System.out.println("Name: " + p.getFurnitureName());
+//                System.out.println("Image: " + p.getPoster());
+//                System.out.println("Description: " + p.getDescription());
+//                System.out.println("Status: " + p.getStatus());
+//                System.out.println("Brand: " + p.getBrand());
+//                System.out.println("Category: " + p.getCategory());
+//                System.out.println("Material: " + p.getMaterial());
+//                System.out.println("Stock: " + p.getStockQuantity());
+//                System.out.println("Cost: " + p.getCost());
+//                System.out.println("Created: " + p.getCreatedDate());
+//                System.out.println("Updated: " + p.getLastUpdated());
+//                System.out.println("------------------------------------");
+//            }
+//        }
+//        int testShopId = 1; // Use a valid ID from your DB
+//
+//        Shop shop = dao.getShopbyId(testShopId);
+//
+//        if (shop != null) {
+//            System.out.println("Shop ID: " + shop.getShopId());
+//            System.out.println("Shop Name: " + shop.getShopName());
+//            System.out.println("Shop Location: " + shop.getLocation());
+//        } else {
+//            System.out.println("No shop found with ID: " + testShopId);
+//        }
+//    }
+      List<Order> supplierOrders = dao.getAllSupplierOrders();
 
-        List<OrderItem> items = dao.getOderItemsByOrderId(testOrderId);
-
-        if (items.isEmpty()) {
-            System.out.println("No order items found for order ID: " + testOrderId);
-        } else {
-            System.out.println("Order Items for Order ID: " + testOrderId);
-            for (OrderItem item : items) {
-                System.out.println("Item ID: " + item.getOrderItemId());
-                System.out.println("Good ID: " + item.getGood_id());
-                System.out.println("Quantity: " + item.getQuantity());
-                System.out.println("Unit Price: " + item.getUnitPrice());
-                System.out.println("Total Cost (same for all items): " + item.getTotalPrice());
-                System.out.println("----------------------------");
-            }
+        for (Order order : supplierOrders) {
+            String supplierName = dao.getSupplierNameById(order.getSupplierId());
+            System.out.println("Order ID: " + order.getOrderId());
+            System.out.println("Supplier: " + supplierName);
+            System.out.println("Order Date: " + order.getOrderDate());
+            System.out.println("Status: " + order.getStatus());
+            System.out.println("Total Cost: " + order.getTotalCost());
+            System.out.println("Placed By (User ID): " + order.getPlacedBy());
+            System.out.println("------------");
         }
     }
 }

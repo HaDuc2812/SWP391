@@ -3,15 +3,17 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
     String shopName = (String) request.getAttribute("shopName");
+    String shopLocation = (String) request.getAttribute("shopLocation");
     Integer orderId = (Integer) request.getAttribute("orderId");
     List<OrderItem> orderItems = (List<OrderItem>) request.getAttribute("orderItems");
     Map<Integer, String> comboNames = (Map<Integer, String>) request.getAttribute("comboNames");
+    String message = (String) request.getAttribute("message"); // ✅ Get the message
 %>
 
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Order Receipt</title>
+        <title>Order Details</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -22,8 +24,18 @@
                 padding-bottom: 10px;
                 margin-bottom: 20px;
             }
-            .receipt-info {
+            .message {
+                padding: 10px;
                 margin-bottom: 20px;
+                border-radius: 4px;
+            }
+            .message.success {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            .message.error {
+                background-color: #f8d7da;
+                color: #721c24;
             }
             .receipt-info p {
                 margin: 5px 0;
@@ -54,9 +66,17 @@
             <h2>📦 Order Receipt</h2>
         </div>
 
+        <%-- ✅ Message Section --%>
+        <c:if test="${not empty message}">
+            <div class="message ${message.contains('insufficient') ? 'error' : 'success'}">
+                ${message}
+            </div>
+        </c:if>
+
         <div class="receipt-info">
             <p><strong>Order ID:</strong> <%= orderId %></p>
             <p><strong>Ship to:</strong> <%= shopName %></p>
+            <p><strong>Ship to Address:</strong> <%= shopLocation %></p>
             <p><strong>Number of Items:</strong> <%= (orderItems != null ? orderItems.size() : "0") %></p>
         </div>
 
@@ -65,8 +85,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Combo ID</th>
-                            <th>Combo Name</th>
+                            <th>Furniture</th>
+                            <th>Furniture Name</th>
                             <th>Quantity</th>
                             <th>Unit Price</th>
                             <th>Total</th>
@@ -96,9 +116,8 @@
                 <p>No items found for this order.</p>
             </c:otherwise>
         </c:choose>
-        <!-- Buttons Section -->
+
         <div style="margin-top: 20px;">
-            <!-- Approve Button Form -->
             <form action="${pageContext.request.contextPath}/approveorders" method="post" style="display: inline;">
                 <input type="hidden" name="orderId" value="<%= orderId %>" />
                 <button type="submit" class="btn-approve" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
@@ -106,7 +125,6 @@
                 </button>
             </form>
 
-            <!-- Back Button Form -->
             <form action="${pageContext.request.contextPath}/listfromshops" method="get" style="display: inline;">
                 <button type="submit" class="btn-back" style="padding: 10px 20px; background-color: gray; color: white; border: none; border-radius: 5px;">
                     ⬅ Back to Order List
