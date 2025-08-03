@@ -21,6 +21,8 @@ import entity.User;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import model.*;
 
 /**
@@ -1057,5 +1059,453 @@ public class DAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // Import/Export methods
+    public int createImportBill(ImportBill importBill) throws SQLException {
+        int importId = -1;
+        String billSql = "INSERT INTO ImportBills (supplier_id, total_amount, created_by, status) VALUES (?, ?, ?, ?)";
+        String itemSql = "INSERT INTO ImportItems (import_id, furniture_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
+
+            // Insert import bill
+            ps = conn.prepareStatement(billSql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, importBill.getSupplierId());
+            ps.setDouble(2, importBill.getTotalAmount());
+            ps.setInt(3, importBill.getCreatedBy());
+            ps.setString(4, importBill.getStatus());
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                importId = rs.getInt(1);
+            }
+
+            // Insert import items
+            ps = conn.prepareStatement(itemSql);
+            for (ImportItem item : importBill.getItems()) {
+                ps.setInt(1, importId);
+                ps.setInt(2, item.getFurnitureId());
+                ps.setInt(3, item.getQuantity());
+                ps.setDouble(4, item.getUnitPrice());
+                ps.addBatch();
+
+                // Update stock quantity
+                updateFurnitureStock(conn, item.getFurnitureId(), item.getQuantity());
+            }
+            ps.executeBatch();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            closeResources();
+        }
+        return importId;
+    }
+
+    public int createExportBill(ExportBill exportBill) throws SQLException {
+        int exportId = -1;
+        String billSql = "INSERT INTO ExportBills (shop_id, total_amount, created_by, status) VALUES (?, ?, ?, ?)";
+        String itemSql = "INSERT INTO ExportItems (export_id, furniture_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
+
+            // Check stock availability first
+            for (ExportItem item : exportBill.getItems()) {
+                int currentStock = getFurnitureStockBYId(item.getFurnitureId());
+                if (currentStock < item.getQuantity()) {
+                    throw new SQLException("Not enough stock for furniture ID: " + item.getFurnitureId()
+                            + ". Available: " + currentStock + ", Requested: " + item.getQuantity());
+                }
+            }
+
+            // Insert export bill
+            ps = conn.prepareStatement(billSql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, exportBill.getShopId());
+            ps.setDouble(2, exportBill.getTotalAmount());
+            ps.setInt(3, exportBill.getCreatedBy());
+            ps.setString(4, exportBill.getStatus());
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                exportId = rs.getInt(1);
+            }
+
+            // Insert export items
+            ps = conn.prepareStatement(itemSql);
+            for (ExportItem item : exportBill.getItems()) {
+                ps.setInt(1, exportId);
+                ps.setInt(2, item.getFurnitureId());
+                ps.setInt(3, item.getQuantity());
+                ps.setDouble(4, item.getUnitPrice());
+                ps.addBatch();
+
+                // Update stock quantity (deduct)
+                updateFurnitureStock(conn, item.getFurnitureId(), -item.getQuantity());
+            }
+            ps.executeBatch();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            closeResources();
+        }
+        return exportId;
+    }
+
+    private void updateFurnitureStock(Connection conn, int furnitureId, int quantityChange) throws SQLException {
+        String sql = "UPDATE Furniture SET StockQuantity = StockQuantity + ? WHERE FurnitureID = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, quantityChange);
+            ps.setInt(2, furnitureId);
+            ps.executeUpdate();
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public List<ImportBill> getAllImportBills() throws SQLException {
+        List<ImportBill> bills = new ArrayList<>();
+        String sql = "SELECT ib.*, s.name as supplier_name, s.address as supplier_address "
+                + "FROM ImportBills ib "
+                + "JOIN Suppliers s ON ib.supplier_id = s.supplier_id "
+                + "ORDER BY ib.import_date DESC";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ImportBill bill = new ImportBill();
+                bill.setImportId(rs.getInt("import_id"));
+                bill.setSupplierId(rs.getInt("supplier_id"));
+                bill.setImportDate(rs.getTimestamp("import_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Suppliers supplier = new Suppliers();
+                supplier.setSupplierID(rs.getInt("supplier_id"));
+                supplier.setSname(rs.getString("supplier_name"));
+                supplier.setAddress(rs.getString("supplier_address"));
+                bill.setSupplier(supplier);
+
+                bills.add(bill);
+            }
+        } finally {
+            closeResources();
+        }
+        return bills;
+    }
+
+    public List<ExportBill> getAllExportBills() throws SQLException {
+        List<ExportBill> bills = new ArrayList<>();
+        String sql = "SELECT eb.*, s.name as shop_name, s.address as shop_location "
+                + "FROM ExportBills eb "
+                + "JOIN Shops s ON eb.shop_id = s.shop_id "
+                + "ORDER BY eb.export_date DESC";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ExportBill bill = new ExportBill();
+                bill.setExportId(rs.getInt("export_id"));
+                bill.setShopId(rs.getInt("shop_id"));
+                bill.setExportDate(rs.getTimestamp("export_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Shop shop = new Shop();
+                shop.setShopId(rs.getInt("shop_id"));
+                shop.setShopName(rs.getString("shop_name"));
+                shop.setLocation(rs.getString("shop_location"));
+                bill.setShop(shop);
+
+                bills.add(bill);
+            }
+        } finally {
+            closeResources();
+        }
+        return bills;
+    }
+
+    public ImportBill getImportBillById(int importId) throws SQLException {
+        ImportBill bill = null;
+        String billSql = "SELECT ib.*, s.name as supplier_name, s.address as supplier_address "
+                + "FROM ImportBills ib "
+                + "JOIN Suppliers s ON ib.supplier_id = s.supplier_id "
+                + "WHERE ib.import_id = ?";
+        String itemsSql = "SELECT ii.*, f.FurnitureName, f.Brand, f.Category "
+                + "FROM ImportItems ii "
+                + "JOIN Furniture f ON ii.furniture_id = f.FurnitureID "
+                + "WHERE ii.import_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+
+            // Get bill info
+            ps = conn.prepareStatement(billSql);
+            ps.setInt(1, importId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                bill = new ImportBill();
+                bill.setImportId(rs.getInt("import_id"));
+                bill.setSupplierId(rs.getInt("supplier_id"));
+                bill.setImportDate(rs.getTimestamp("import_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Suppliers supplier = new Suppliers();
+                supplier.setSupplierID(rs.getInt("supplier_id"));
+                supplier.setSname(rs.getString("supplier_name"));
+                supplier.setAddress(rs.getString("supplier_address"));
+                bill.setSupplier(supplier);
+            }
+
+            if (bill != null) {
+                // Get items
+                ps = conn.prepareStatement(itemsSql);
+                ps.setInt(1, importId);
+                rs = ps.executeQuery();
+
+                List<ImportItem> items = new ArrayList<>();
+                while (rs.next()) {
+                    ImportItem item = new ImportItem();
+                    item.setImportItemId(rs.getInt("import_item_id"));
+                    item.setImportId(rs.getInt("import_id"));
+                    item.setFurnitureId(rs.getInt("furniture_id"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    item.setUnitPrice(rs.getDouble("unit_price"));
+
+                    Product product = new Product();
+                    product.setFurnitureID(rs.getInt("furniture_id"));
+                    product.setFurnitureName(rs.getString("FurnitureName"));
+                    product.setBrand(rs.getString("Brand"));
+                    product.setCategory(rs.getString("Category"));
+                    item.setProduct(product);
+
+                    items.add(item);
+                }
+                bill.setItems(items);
+            }
+        } finally {
+            closeResources();
+        }
+        return bill;
+    }
+
+    public ExportBill getExportBillById(int exportId) throws SQLException {
+        ExportBill bill = null;
+        String billSql = "SELECT eb.*, s.name as shop_name, s.address as shop_location "
+                + "FROM ExportBills eb "
+                + "JOIN Shops s ON eb.shop_id = s.shop_id "
+                + "WHERE eb.export_id = ?";
+        String itemsSql = "SELECT ei.*, f.FurnitureName, f.Brand, f.Category "
+                + "FROM ExportItems ei "
+                + "JOIN Furniture f ON ei.furniture_id = f.FurnitureID "
+                + "WHERE ei.export_id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+
+            // Get bill info
+            ps = conn.prepareStatement(billSql);
+            ps.setInt(1, exportId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                bill = new ExportBill();
+                bill.setExportId(rs.getInt("export_id"));
+                bill.setShopId(rs.getInt("shop_id"));
+                bill.setExportDate(rs.getTimestamp("export_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Shop shop = new Shop();
+                shop.setShopId(rs.getInt("shop_id"));
+                shop.setShopName(rs.getString("shop_name"));
+                shop.setLocation(rs.getString("shop_location"));
+                bill.setShop(shop);
+            }
+
+            if (bill != null) {
+                // Get items
+                ps = conn.prepareStatement(itemsSql);
+                ps.setInt(1, exportId);
+                rs = ps.executeQuery();
+
+                List<ExportItem> items = new ArrayList<>();
+                while (rs.next()) {
+                    ExportItem item = new ExportItem();
+                    item.setExportItemId(rs.getInt("export_item_id"));
+                    item.setExportId(rs.getInt("export_id"));
+                    item.setFurnitureId(rs.getInt("furniture_id"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    item.setUnitPrice(rs.getDouble("unit_price"));
+
+                    Product product = new Product();
+                    product.setFurnitureID(rs.getInt("furniture_id"));
+                    product.setFurnitureName(rs.getString("FurnitureName"));
+                    product.setBrand(rs.getString("Brand"));
+                    product.setCategory(rs.getString("Category"));
+                    item.setProduct(product);
+
+                    items.add(item);
+                }
+                bill.setItems(items);
+            }
+        } finally {
+            closeResources();
+        }
+        return bill;
+    }
+
+    // Thêm vào DAO.java
+    public Map<String, Object> getInventoryStats() throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection(); // Sử dụng DBContext để lấy kết nối
+            stmt = conn.createStatement();
+
+            // 1. Tổng số sản phẩm
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM Furniture");
+            stats.put("totalProducts", rs.next() ? rs.getInt(1) : 0);
+
+            // 2. Tổng tồn kho
+            rs = stmt.executeQuery("SELECT SUM(StockQuantity) FROM Furniture");
+            stats.put("totalStock", rs.next() ? rs.getInt(1) : 0);
+
+            // 3. Giá trị tồn kho
+            rs = stmt.executeQuery("SELECT SUM(StockQuantity * Cost) FROM Furniture");
+            stats.put("inventoryValue", rs.next() ? rs.getDouble(1) : 0.0);
+
+            // 4. Import 30 ngày gần nhất
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM ImportBills WHERE import_date >= DATEADD(day, -30, GETDATE())");
+            stats.put("recentImports", rs.next() ? rs.getInt(1) : 0);
+
+            // 5. Export 30 ngày gần nhất
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM ExportBills WHERE export_date >= DATEADD(day, -30, GETDATE())");
+            stats.put("recentExports", rs.next() ? rs.getInt(1) : 0);
+
+        } finally {
+            // Đóng tài nguyên
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return stats;
+    }
+
+// Phương thức phụ trợ để lấy thống kê theo loại sản phẩm
+    public Map<String, Integer> getProductStatsByCategory() throws SQLException {
+        Map<String, Integer> categoryStats = new HashMap<>();
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBContext.getConnection();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT Category, COUNT(*) as count FROM Furniture GROUP BY Category");
+
+            while (rs.next()) {
+                categoryStats.put(rs.getString("Category"), rs.getInt("count"));
+            }
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return categoryStats;
     }
 }

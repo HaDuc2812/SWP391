@@ -28,7 +28,10 @@ import java.util.regex.Pattern;
 public class UserDAO {
 
     DBContext db = new DBContext();
-    protected Connection connection = DBContext.getConnection();
+    /**
+     *
+     */
+    protected Connection connection;
 
     // Test function
     public static void main(String[] args) throws SQLException {
@@ -71,6 +74,10 @@ public class UserDAO {
         for (User allUser : ud.getAllUsers(null, "InventoryManager", "all", "name_asc")) {
             System.out.println(allUser);
         }
+    }
+
+    public UserDAO() throws SQLException {
+        this.connection = DBContext.getConnection();
     }
 
 // Account generator
