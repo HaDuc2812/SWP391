@@ -34,74 +34,287 @@
                 </ul>
             </div>
 
-            <div class="p-4" style="flex-grow: 1;">
-                <h2>Store Dashboard</h2>
-                <p>Welcome, manager. Use the sidebar to navigate through store data.</p>
+            <!-- Main Content -->
+            <div class="p-4 flex-grow-1" style="background-color: #f8f9fc;">
+                <h2 class="mb-4">Inventory Dashboard</h2>
 
-                <!-- Thêm phần thống kê -->
-                <div class="row mt-4">
-                    <!-- Card 1: Tổng sản phẩm -->
-                    <div class="col-md-3 mb-4">
-                        <div class="card text-white bg-primary h-100">
+                <!-- Summary Cards -->
+                <div class="row">
+                    <!-- Total Products -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card primary h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Total Products</h5>
-                                <h1 class="display-4">${stats.totalProducts}</h1>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 2: Tổng tồn kho -->
-                    <div class="col-md-3 mb-4">
-                        <div class="card text-white bg-success h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">Total Stock</h5>
-                                <h1 class="display-4">${stats.totalStock}</h1>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: Giá trị tồn kho -->
-                    <div class="col-md-3 mb-4">
-                        <div class="card text-white bg-info h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">Inventory Value</h5>
-                                <h1 class="display-4">
-                                    <fmt:formatNumber value="${stats.inventoryValue}" type="currency" currencySymbol="$"/>
-                                </h1>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card 4: Hoạt động gần đây -->
-                    <div class="col-md-3 mb-4">
-                        <div class="card text-white bg-warning h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">Recent Activities</h5>
-                                <div class="mb-2">
-                                    <i class="fas fa-arrow-down"></i> ${stats.recentImports} Imports
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Products</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.totalProducts}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                                    </div>
                                 </div>
-                                <div>
-                                    <i class="fas fa-arrow-up"></i> ${stats.recentExports} Exports
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Stock -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card success h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Total Stock</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">${stats.totalStock}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-warehouse fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Value -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card info h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Inventory Value</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <fmt:formatNumber value="${stats.inventoryValue}" type="currency" currencySymbol="$"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card warning h-100">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Recent Activities (30 days)</div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    ${stats.recentImports} Imports
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    ${stats.recentExports} Exports
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Biểu đồ (có thể thêm sau) -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Monthly Activity</h5>
+                <!-- Charts Row -->
+                <div class="row">
+                    <!-- Monthly Activity Chart -->
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Monthly Import/Export Activity</h6>
                             </div>
                             <div class="card-body">
-                                <div id="chartContainer" style="height: 300px;"></div>
+                                <div class="chart-container">
+                                    <canvas id="monthlyActivityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Distribution Pie Chart -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Inventory Distribution</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="inventoryDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Recent Transactions</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Transaction ID</th>
+                                                <th>Partner</th>
+                                                <th>Items</th>
+                                                <th>Total Value</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Sample data - should be replaced with actual data -->
+                                            <tr>
+                                                <td>2023-06-15</td>
+                                                <td><span class="badge bg-primary">Import</span></td>
+                                                <td>IMP-10025</td>
+                                                <td>ABC Suppliers</td>
+                                                <td>5 items</td>
+                                                <td>$1,250.00</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>2023-06-14</td>
+                                                <td><span class="badge bg-warning text-dark">Export</span></td>
+                                                <td>EXP-10024</td>
+                                                <td>Main Store</td>
+                                                <td>8 items</td>
+                                                <td>$980.50</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>2023-06-12</td>
+                                                <td><span class="badge bg-primary">Import</span></td>
+                                                <td>IMP-10023</td>
+                                                <td>XYZ Furniture</td>
+                                                <td>12 items</td>
+                                                <td>$2,340.75</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- JavaScript -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Monthly Activity Chart
+                const monthlyCtx = document.getElementById('monthlyActivityChart').getContext('2d');
+                const monthlyChart = new Chart(monthlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [
+                            {
+                                label: 'Imports',
+                                data: [12, 19, 15, 17, 14, 8],
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Exports',
+                                data: [8, 12, 10, 14, 11, 6],
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.dataset.label + ': ' + context.raw;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Inventory Distribution Chart
+                const inventoryCtx = document.getElementById('inventoryDistributionChart').getContext('2d');
+                const inventoryChart = new Chart(inventoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Chairs', 'Tables', 'Sofas', 'Beds', 'Cabinets'],
+                        datasets: [{
+                                data: [35, 25, 20, 15, 5],
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(255, 99, 132, 0.7)',
+                                    'rgba(255, 206, 86, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+
+        <!-- Font Awesome for icons -->
+        <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>                                    
     </body>
 </html>

@@ -62,6 +62,29 @@
                 margin-bottom: 15px;
                 display: inline-block;
             }
+            .filter-container {
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .form-label {
+                font-weight: 500;
+                color: #495057;
+            }
+
+            /* Đảm bảo form controls hiển thị đẹp */
+            .form-control, .form-select {
+                padding: 0.375rem 0.75rem;
+                border: 1px solid #ced4da;
+                border-radius: 0.25rem;
+            }
+
+            /* Responsive cho form filter */
+            @media (max-width: 768px) {
+                .filter-container .col-md-3,
+                .filter-container .col-md-2 {
+                    margin-bottom: 1rem;
+                }
+            }
         </style>
     </head>
     <body>
@@ -85,6 +108,38 @@
                 <h1>Import Bills</h1>
                 <a href="${pageContext.request.contextPath}/import/new" class="new-btn">Create New Import</a>
 
+                <div class="filter-container mb-4 p-3 bg-light rounded">
+                    <form method="get" action="${pageContext.request.contextPath}/import/list" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="${param.search}" placeholder="ID or Supplier">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">All</option>
+                                <option value="Completed" ${param.status eq 'Completed' ? 'selected' : ''}>Completed</option>
+                                <option value="Pending" ${param.status eq 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Cancelled" ${param.status eq 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fromDate" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="fromDate" name="fromDate" 
+                                   value="${param.fromDate}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="toDate" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="toDate" name="toDate" 
+                                   value="${param.toDate}">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <button type="button" id="clearFilter" class="btn btn-secondary">Clear</button>
+                        </div>
+                    </form>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -116,5 +171,33 @@
                 </table>
             </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Xử lý clear filter
+                const clearFilter = document.getElementById('clearFilter');
+                if (clearFilter) {
+                    clearFilter.addEventListener('click', function () {
+                        document.getElementById('search').value = '';
+                        document.getElementById('status').selectedIndex = 0;
+                        document.getElementById('fromDate').value = '';
+                        document.getElementById('toDate').value = '';
+                    });
+                }
+
+                // Validate date range
+                const form = document.querySelector('.filter-container form');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        const fromDate = document.getElementById('fromDate').value;
+                        const toDate = document.getElementById('toDate').value;
+
+                        if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+                            alert('"From Date" cannot be after "To Date"');
+                            e.preventDefault();
+                        }
+                    });
+                }
+            });
+        </script>
     </body>
 </html>

@@ -1413,57 +1413,27 @@ public class DAO {
     // Thêm vào DAO.java
     public Map<String, Object> getInventoryStats() throws SQLException {
         Map<String, Object> stats = new HashMap<>();
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
+        String sql = "SELECT "
+                + "  (SELECT COUNT(*) FROM Furniture) AS totalProducts, "
+                + "  (SELECT SUM(StockQuantity) FROM Furniture) AS totalStock, "
+                + "  (SELECT SUM(StockQuantity * Cost) FROM Furniture) AS inventoryValue, "
+                + "  (SELECT COUNT(*) FROM ImportBills WHERE import_date >= DATEADD(day, -30, GETDATE())) AS recentImports, "
+                + "  (SELECT COUNT(*) FROM ExportBills WHERE export_date >= DATEADD(day, -30, GETDATE())) AS recentExports";
 
         try {
-            conn = DBContext.getConnection(); // Sử dụng DBContext để lấy kết nối
-            stmt = conn.createStatement();
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
 
-            // 1. Tổng số sản phẩm
-            rs = stmt.executeQuery("SELECT COUNT(*) FROM Furniture");
-            stats.put("totalProducts", rs.next() ? rs.getInt(1) : 0);
-
-            // 2. Tổng tồn kho
-            rs = stmt.executeQuery("SELECT SUM(StockQuantity) FROM Furniture");
-            stats.put("totalStock", rs.next() ? rs.getInt(1) : 0);
-
-            // 3. Giá trị tồn kho
-            rs = stmt.executeQuery("SELECT SUM(StockQuantity * Cost) FROM Furniture");
-            stats.put("inventoryValue", rs.next() ? rs.getDouble(1) : 0.0);
-
-            // 4. Import 30 ngày gần nhất
-            rs = stmt.executeQuery("SELECT COUNT(*) FROM ImportBills WHERE import_date >= DATEADD(day, -30, GETDATE())");
-            stats.put("recentImports", rs.next() ? rs.getInt(1) : 0);
-
-            // 5. Export 30 ngày gần nhất
-            rs = stmt.executeQuery("SELECT COUNT(*) FROM ExportBills WHERE export_date >= DATEADD(day, -30, GETDATE())");
-            stats.put("recentExports", rs.next() ? rs.getInt(1) : 0);
-
+            if (rs.next()) {
+                stats.put("totalProducts", rs.getInt("totalProducts"));
+                stats.put("totalStock", rs.getInt("totalStock"));
+                stats.put("inventoryValue", rs.getDouble("inventoryValue"));
+                stats.put("recentImports", rs.getInt("recentImports"));
+                stats.put("recentExports", rs.getInt("recentExports"));
+            }
         } finally {
-            // Đóng tài nguyên
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            closeResources();
         }
         return stats;
     }
@@ -1508,4 +1478,196 @@ public class DAO {
         }
         return categoryStats;
     }
+
+    public List<ImportBill> getAllImportBills(String searchTerm, String status, String fromDate, String toDate) throws SQLException {
+        List<ImportBill> bills = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT ib.*, s.name as supplier_name, s.address as supplier_address "
+                + "FROM ImportBills ib "
+                + "JOIN Suppliers s ON ib.supplier_id = s.supplier_id "
+                + "WHERE 1=1"
+        );
+
+        List<Object> params = new ArrayList<>();
+
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            sql.append(" AND (s.name LIKE ? OR ib.import_id LIKE ?)");
+            params.add("%" + searchTerm + "%");
+            params.add("%" + searchTerm + "%");
+        }
+
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND ib.status = ?");
+            params.add(status);
+        }
+
+        if (fromDate != null && !fromDate.isEmpty()) {
+            sql.append(" AND ib.import_date >= ?");
+            params.add(fromDate);
+        }
+
+        if (toDate != null && !toDate.isEmpty()) {
+            sql.append(" AND ib.import_date <= ?");
+            params.add(toDate);
+        }
+
+        sql.append(" ORDER BY ib.import_date DESC");
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ImportBill bill = new ImportBill();
+                bill.setImportId(rs.getInt("import_id"));
+                bill.setSupplierId(rs.getInt("supplier_id"));
+                bill.setImportDate(rs.getTimestamp("import_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Suppliers supplier = new Suppliers();
+                supplier.setSupplierID(rs.getInt("supplier_id"));
+                supplier.setSname(rs.getString("supplier_name"));
+                supplier.setAddress(rs.getString("supplier_address"));
+                bill.setSupplier(supplier);
+
+                bills.add(bill);
+            }
+        } finally {
+            closeResources();
+        }
+        return bills;
+    }
+
+    /**
+     * Lấy tất cả phiếu xuất với khả năng lọc
+     */
+    public List<ExportBill> getAllExportBills(String searchTerm, String status, String fromDate, String toDate) throws SQLException {
+        List<ExportBill> bills = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT eb.*, s.name as shop_name, s.address as shop_location "
+                + "FROM ExportBills eb "
+                + "JOIN Shops s ON eb.shop_id = s.shop_id "
+                + "WHERE 1=1"
+        );
+
+        List<Object> params = new ArrayList<>();
+
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            sql.append(" AND (s.name LIKE ? OR eb.export_id LIKE ?)");
+            params.add("%" + searchTerm + "%");
+            params.add("%" + searchTerm + "%");
+        }
+
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND eb.status = ?");
+            params.add(status);
+        }
+
+        if (fromDate != null && !fromDate.isEmpty()) {
+            sql.append(" AND eb.export_date >= ?");
+            params.add(fromDate);
+        }
+
+        if (toDate != null && !toDate.isEmpty()) {
+            sql.append(" AND eb.export_date <= ?");
+            params.add(toDate);
+        }
+
+        sql.append(" ORDER BY eb.export_date DESC");
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ExportBill bill = new ExportBill();
+                bill.setExportId(rs.getInt("export_id"));
+                bill.setShopId(rs.getInt("shop_id"));
+                bill.setExportDate(rs.getTimestamp("export_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+                bill.setCreatedBy(rs.getInt("created_by"));
+                bill.setStatus(rs.getString("status"));
+
+                Shop shop = new Shop();
+                shop.setShopId(rs.getInt("shop_id"));
+                shop.setShopName(rs.getString("shop_name"));
+                shop.setLocation(rs.getString("shop_location"));
+                bill.setShop(shop);
+
+                bills.add(bill);
+            }
+        } finally {
+            closeResources();
+        }
+        return bills;
+    }
+
+    public Map<String, Integer> getMonthlyImportExportStats() throws SQLException {
+        Map<String, Integer> stats = new HashMap<>();
+        String sql = "SELECT "
+                + "  FORMAT(import_date, 'yyyy-MM') AS month, "
+                + "  COUNT(*) AS import_count "
+                + "FROM ImportBills "
+                + "WHERE import_date >= DATEADD(month, -6, GETDATE()) "
+                + "GROUP BY FORMAT(import_date, 'yyyy-MM') "
+                + "UNION ALL "
+                + "SELECT "
+                + "  FORMAT(export_date, 'yyyy-MM') AS month, "
+                + "  COUNT(*) * -1 AS export_count "
+                + "FROM ExportBills "
+                + "WHERE export_date >= DATEADD(month, -6, GETDATE()) "
+                + "GROUP BY FORMAT(export_date, 'yyyy-MM')";
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String month = rs.getString("month");
+                int count = rs.getInt("import_count");
+                stats.merge(month, count, Integer::sum);
+            }
+        } finally {
+            closeResources();
+        }
+        return stats;
+    }
+
+    public Map<String, Double> getInventoryValueByCategory() throws SQLException {
+        Map<String, Double> values = new HashMap<>();
+        String sql = "SELECT "
+                + "  Category, "
+                + "  SUM(StockQuantity * Cost) AS total_value "
+                + "FROM Furniture "
+                + "GROUP BY Category";
+
+        try {
+            conn = DBContext.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                values.put(rs.getString("Category"), rs.getDouble("total_value"));
+            }
+        } finally {
+            closeResources();
+        }
+        return values;
+    }
+
 }

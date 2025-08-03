@@ -22,6 +22,14 @@ import java.util.Map;
 @WebServlet(name = "InventoryDashboardController", urlPatterns = {"/inventoryDashboard"})
 public class InventoryDashboardController extends HttpServlet {
 
+    private DAO dao;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        dao = new DAO();
+    }
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -61,9 +69,17 @@ public class InventoryDashboardController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            DAO dao = new DAO();
+            // Lấy dữ liệu thống kê cơ bản
             Map<String, Object> stats = dao.getInventoryStats();
+
+            // Lấy dữ liệu cho biểu đồ
+            Map<String, Integer> monthlyStats = dao.getMonthlyImportExportStats();
+            Map<String, Double> categoryValues = dao.getInventoryValueByCategory();
+
             request.setAttribute("stats", stats);
+            request.setAttribute("monthlyStats", monthlyStats);
+            request.setAttribute("categoryValues", categoryValues);
+
             request.getRequestDispatcher("/inventoryDashboard.jsp").forward(request, response);
         } catch (SQLException e) {
             throw new ServletException(e);

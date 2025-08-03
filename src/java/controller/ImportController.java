@@ -119,8 +119,21 @@ public class ImportController extends HttpServlet {
 
     private void listImports(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-        List<ImportBill> imports = dao.getAllImportBills();
+        // Lấy tham số tìm kiếm từ request
+        String searchTerm = request.getParameter("search");
+        String statusFilter = request.getParameter("status");
+        String fromDate = request.getParameter("fromDate");
+        String toDate = request.getParameter("toDate");
+
+        // Gọi DAO với các tham số lọc
+        List<ImportBill> imports = dao.getAllImportBills(searchTerm, statusFilter, fromDate, toDate);
+
         request.setAttribute("imports", imports);
+        request.setAttribute("searchTerm", searchTerm);
+        request.setAttribute("statusFilter", statusFilter);
+        request.setAttribute("fromDate", fromDate);
+        request.setAttribute("toDate", toDate);
+
         request.getRequestDispatcher("/importList.jsp").forward(request, response);
     }
 
